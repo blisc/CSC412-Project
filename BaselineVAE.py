@@ -26,6 +26,11 @@ class VariationalAutoencoder:
     self.images = tf.placeholder(tf.float32, [self.batchSize, 784])
     
     with tf.variable_scope("Recognition") as scope:
+      # Log sigma squared version
+      # self.z_mean, self.z_log_var = self._recognition_network(self.images)
+      # epsilon = tf.random_normal((self.batchSize, self.latentDimension), 0, 1, dtype=tf.float32)
+      # self.z = tf.add(self.z_mean, tf.mul(tf.sqrt(tf.exp(self.z_log_var)), epsilon))
+      # Log sigma version
       self.z_mean, self.z_log_std = self._recognition_network(self.images)
       epsilon = tf.random_normal((self.batchSize, self.latentDimension), 0, 1, dtype=tf.float32)
       self.z = tf.add(self.z_mean, tf.mul(tf.exp(self.z_log_std), epsilon))
@@ -36,13 +41,18 @@ class VariationalAutoencoder:
     # loss is -KL(q(z|x)||p(z)) + mean(log(p(x|z)))
     # KL + reconstructrion loss
     # q(z|x) is self.z
-    reconstructrion_loss = -tf.reduce_sum(self.images * tf.log(1e-10 + self.reconstructrion)
-                           + (1-self.images) * tf.log(1e-10 + 1 - self.reconstructrion),
+    self.reconstructrion_loss = -tf.reduce_sum(self.images * tf.log(1e-10 + self.reconstructrion)
+                           + (1-self.images) * tf.log(1e-10 + 1. - self.reconstructrion),
                            1)
-    latent_loss = -0.5 * tf.reduce_sum(1 + 2*self.z_log_std
+    # Log sigma squared version
+    # self.latent_loss = -0.5 * tf.reduce_sum(1. + self.z_log_var 
+                                           # - tf.square(self.z_mean) 
+                                           # - tf.exp(self.z_log_var), 1)
+    # Log sigma version
+    self.latent_loss = -0.5 * tf.reduce_sum(1. + 2.*self.z_log_std
                                            - tf.square(self.z_mean) 
-                                           - tf.square(tf.exp(self.z_log_std)), 1)                       
-    self.loss = tf.reduce_mean(reconstructrion_loss+latent_loss)
+                                           - tf.exp(2.*self.z_log_std), 1)                       
+    self.loss = tf.reduce_mean(self.reconstructrion_loss+self.latent_loss)
     
     self.optimizer = optimizer(self.loss, self.learningRate)
     
@@ -75,12 +85,16 @@ class VariationalAutoencoder:
         total_batch = int(self.trainingSize / self.batchSize)
         for i in range(total_batch):
           batch, _ = self.dataSamples.sample(self.batchSize)
-          _, loss = sess.run([self.optimizer, self.loss], feed_dict={self.images:batch})
+          _, loss, = sess.run([self.optimizer, self.loss], feed_dict={self.images:batch})
+          # r_loss = np.mean(r_loss)
+          # l_loss = np.mean(l_loss)
+          # print("reconst loss {}".format(r_loss))
+          # print("latent loss {}".format(l_loss))
           avg_loss += loss / self.trainingSize * self.batchSize
 
         if epoch % 1 == 0:
           print("Epoch:", '%04d' % (epoch+1), "loss=", "{:.9f}".format(avg_loss))
-          print("last loss=", "{:.9f}".format(loss))
+          # print("last loss=", "{:.9f}".format(loss))
           summary_str = sess.run(summary, feed_dict={self.images:batch})
           summary_writer.add_summary(summary_str, epoch)
           summary_writer.flush()
@@ -107,7 +121,7 @@ class VariationalAutoencoder:
     hid_1 = tf.nn.relu(linear(sample,self.hiddenLayerSize,'hid_1'))
     hid_2 = tf.nn.relu(linear(hid_1,self.hiddenLayerSize,'hid_2'))
     
-    reconstructrion = tf.nn.relu(linear(hid_2,784,'z_mean'))
+    reconstructrion = tf.nn.sigmoid(linear(hid_2,784,'z_mean'))
     
     return reconstructrion
     
