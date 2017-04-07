@@ -92,13 +92,13 @@ class VariationalAutoencoder:
           # print("latent loss {}".format(l_loss))
           avg_loss += loss / self.trainingSize * self.batchSize
 
-        if epoch % 1 == 0:
+        if epoch % 5 == 0:
           print("Epoch:", '%04d' % (epoch+1), "loss=", "{:.9f}".format(avg_loss))
           # print("last loss=", "{:.9f}".format(loss))
           summary_str = sess.run(summary, feed_dict={self.images:batch})
           summary_writer.add_summary(summary_str, epoch)
           summary_writer.flush()
-        if epoch % 5 == 0:
+        if epoch % 10 == 0 or (epoch+1) == self.trainingEpochs:
           checkpoint_file = os.path.join(FLAGS.checkpoint_dir, 'checkpoint')
           saver.save(sess, checkpoint_file, global_step=epoch)
           
