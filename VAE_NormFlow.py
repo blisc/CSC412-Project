@@ -38,17 +38,27 @@ class VariationalAutoencoder:
       self.z = tf.add(self.z_mean, tf.multiply(tf.sqrt(tf.exp(self.z_log_var)), epsilon))
     
     with tf.variable_scope("Generator") as scope:
-      # self.reconstructon is the mean (i.e. output of VAE network, which is Bernoulli)
-      self.reconstruction, sumLogDetJ, f_z = self._generator_network(self.z)
+      # self.reconstruction is the mean (i.e. output of VAE network, which is Bernoulli)
+      self.reconstruction, self.sumLogDetJ, f_z = self._generator_network(self.z)
 
-    # Compute the loss function
-    log_q0_z0 = lognormal(self.z, self.z_mean, self.z_log_var)
-    log_p_x_given_zk = -tf.reduce_sum(self.images * tf.log(1e-10 + self.reconstruction) + \
-                                     (1 - self.images) * tf.log(1e-10 + 1 - self.reconstruction))
-    log_p_zk = log_stdnormal(f_z)
-    log_p_x_and_zk = log_p_x_given_zk + log_p_zk
+    # Compute \mathbb{E}_q[\log q_0(z_0)]
+    self.log_q0_z0 = tf.reduce_mean(lognormal(self.z, self.z_mean, self.z_log_var), axis=0)
 
-    self.loss = tf.reduce_mean(log_p_x_and_zk + sumLogDetJ - log_q0_z0)
+    # Compute \mathbb{E}_q[\log p(x, z_k)]
+    self.log_p_x_given_zk = -tf.reduce_sum( self.images * tf.log(1e-10 + self.reconstruction) + \
+                                            (1 - self.images) * tf.log(1e-10 + 1 - self.reconstruction) )
+    self.log_p_zk = log_stdnormal(f_z)
+    self.log_p_x_and_zk = tf.reduce_mean(self.log_p_x_given_zk + self.log_p_zk, axis=0)
+
+    # Compute \mathbb{E}_q[sum_log_det_J]
+    self.sumLogDetJ = tf.reduce_mean(self.sumLogDetJ, axis=0)
+
+    # Compute the free energy, \mathcal{F}(x). See Eq. 15 in RM15. We want to minimize free
+    # energy or maximize negative free energy (which is the ELBO).
+    #self.loss = tf.reduce_mean(-self.log_p_x_and_zk - self.sumLogDetJ + self.log_q0_z0)
+    self.loss = -self.log_p_x_and_zk - self.sumLogDetJ + self.log_q0_z0
+
+    # Set optimizer
     self.optimizer = optimizer(self.loss, self.learningRate)
 
     tf.summary.scalar(self.loss.op.name, self.loss)
@@ -81,11 +91,14 @@ class VariationalAutoencoder:
         total_batch = int(self.trainingSize / self.batchSize)
         for i in range(total_batch):
           batch, _ = self.dataSamples.sample(self.batchSize)
-          _, loss = sess.run([self.optimizer, self.loss], feed_dict={self.images:batch})
+          _, loss, logPxAndZk, logq0z0, sumLogDetJ = sess.run([self.optimizer, self.loss, \
+                                                       self.log_p_x_and_zk, self.log_q0_z0, self.sumLogDetJ], \
+                                                       feed_dict={self.images:batch})
           avg_loss += loss / self.trainingSize * self.batchSize
 
         if epoch % 1 == 0:
-          print("Epoch:", '%04d' % (epoch+1), "loss=", "{:.9f}".format(avg_loss))
+          print("Epoch:", '%04d' % (epoch+1), "loss=", "{:.9f}", "logPxAndZk=", "{}", "logq0z0=", \
+                "{}", "sumLogDetJ=", "{}".format(avg_loss, logPxAndZk, logq0z0, sumLogDetJ))
           print("last loss=", "{:.9f}".format(loss))
           summary_str = sess.run(summary, feed_dict={self.images:batch})
           summary_writer.add_summary(summary_str, epoch)
@@ -138,7 +151,7 @@ class VariationalAutoencoder:
 if __name__ == '__main__':
   with tf.device('/gpu'):
     model = VariationalAutoencoder(batchSize=128, hiddenLayerSize=500, trainingEpochs=100, \
-                                   learningRate=0.001, latentDimension=20, flowLayers=5)
+                                   learningRate=0.001, latentDimension=20, flowLayers=1)
     model.createModel()
     model.train()
 

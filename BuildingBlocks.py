@@ -36,6 +36,10 @@ def linear(tensor_in, output_dim, scope = None, bias=0.0, summary=True, normal=F
 def NormFlowLayer(incoming, output_dim, scope = None, bias = 0.0):
   # Initialize the normalizing flow layer
   with tf.variable_scope(scope or 'normflow'):
+    # Compute f(z) = z + u h(zw + b)
+    # Compute log_det_jac = |1 + psi u|
+    # psi = h'(zw + b)w
+
     w = tf.Variable(tf.truncated_normal([int(incoming.get_shape()[-1]), output_dim], stddev=0.01))
     u = tf.Variable(tf.truncated_normal([int(incoming.get_shape()[-1]), output_dim], stddev=0.01))
     b = tf.get_variable("biases", [output_dim], initializer=tf.constant_initializer(bias))
@@ -43,14 +47,19 @@ def NormFlowLayer(incoming, output_dim, scope = None, bias = 0.0):
     # z is (batch_size, latent_dim)
     z = incoming
 
-    uw = tf.reduce_sum(tf.multiply(u,w))
-    muw = -1 + tf.log(1e-10 + 1 + tf.exp(uw))
-    u_hat = u + (muw-uw) * tf.transpose(w) / tf.reduce_sum(w**2)
+    #uw = tf.reduce_sum(tf.multiply(u,w))
+    #muw = -1 + tf.log(1e-10 + 1 + tf.exp(uw))
+    #u_hat = u + (muw-uw) * tf.transpose(w) / tf.reduce_sum(w**2)
     zwb = tf.matmul(z, w) + b
-    f_z = z + tf.matmul(tf.tanh(zwb), u_hat)
+    #f_z = z + tf.matmul(tf.tanh(zwb), u_hat)
+    f_z = z + tf.matmul(tf.tanh(zwb), u)
+    #f_z = z + tf.matmul(tf.nn.sigmoid(zwb), u)
 
     psi = tf.matmul(1 - tf.tanh(zwb)**2, w)
-    psi_u = tf.matmul(psi, u_hat)
+    #psi = tf.matmul(tf.nn.sigmoid(zwb) * (1 - tf.nn.sigmoid(zwb)), w)
+
+    #psi_u = tf.matmul(psi, u_hat)
+    psi_u = tf.matmul(psi, u)
 
     logdet_jacobian = tf.log(1e-10 + tf.abs(1 + psi_u))
 
@@ -72,7 +81,7 @@ def lognormal(z, z_mean, z_log_var, eps = 0.0):
   # Computes elementwise log prob
   # \log p(z) = \log \mathcal{N}(z | z_mean, z_log_var)
   c = 0.5 * math.log(2 * math.pi)
-  return c - z_log_var/2 - (z - z_mean)**2 / (2*tf.exp(z_log_var) + eps)
+  return c - z_log_var/2 - (z - z_mean)**2 / (2*(tf.exp(z_log_var)) + eps)
 
 
 def optimizer(loss, learningRate, var_list=None):
