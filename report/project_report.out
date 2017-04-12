@@ -1,0 +1,11 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{Formal Description}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Variational Lower Bound}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Vanilla VAE}{section.2}% 4
+\BOOKMARK [2][-]{subsection.2.3}{VAE with Normalizing Flow}{section.2}% 5
+\BOOKMARK [1][-]{section.3}{Related Work}{}% 6
+\BOOKMARK [1][-]{section.4}{Comparison}{}% 7
+\BOOKMARK [2][-]{subsection.4.1}{Baseline VAE}{section.4}% 8
+\BOOKMARK [2][-]{subsection.4.2}{VAE with Normalizing Flow}{section.4}% 9
+\BOOKMARK [1][-]{section.5}{Limitations}{}% 10
+\BOOKMARK [1][-]{section.6}{Conclusions}{}% 11
