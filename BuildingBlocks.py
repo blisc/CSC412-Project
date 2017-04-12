@@ -3,6 +3,7 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
+import math
 
 from tensorflow.examples.tutorials.mnist import input_data
 import tensorflow as tf
@@ -14,21 +15,65 @@ class DataDistribution:
   
   def sample(self, numSamples):
     samples,labels = self.mnist.train.next_batch(numSamples)
-    # samples.sort()
     return samples, labels
+
 
 def linear(tensor_in, output_dim, scope = None, bias=0.0, summary=True, normal=False):
   with tf.variable_scope(scope or 'linear'):
     if normal:
       weights = tf.Variable(tf.truncated_normal([int(tensor_in.get_shape()[-1]), output_dim], stddev=0.001))
     else:
-      weights = tf.get_variable("weights", [tensor_in.get_shape()[-1], output_dim], initializer=tf.contrib.layers.xavier_initializer(uniform=False))
+      weights = tf.get_variable("weights", [tensor_in.get_shape()[-1], output_dim], \
+                                initializer=tf.contrib.layers.xavier_initializer(uniform=False))
     bias = tf.get_variable("biases", [output_dim], initializer=tf.constant_initializer(bias))
     
     if(summary):
       variable_summaries(weights, (scope or 'linear')+'_weights')
     
     return tf.matmul(tensor_in, weights) + bias
+
+
+def NormFlowLayer(incoming, output_dim, scope = None, bias = 0.0):
+  # Initialize the normalizing flow layer
+  with tf.variable_scope(scope or 'normflow'):
+    w = tf.Variable(tf.truncated_normal([int(incoming.get_shape()[-1]), output_dim], stddev=0.01))
+    u = tf.Variable(tf.truncated_normal([int(incoming.get_shape()[-1]), output_dim], stddev=0.01))
+    b = tf.get_variable("biases", [output_dim], initializer=tf.constant_initializer(bias))
+
+    # z is (batch_size, latent_dim)
+    z = incoming
+
+    uw = tf.reduce_sum(tf.multiply(u,w))
+    muw = -1 + tf.log(1e-10 + 1 + tf.exp(uw))
+    u_hat = u + (muw-uw) * tf.transpose(w) / tf.reduce_sum(w**2)
+    zwb = tf.matmul(z, w) + b
+    f_z = z + tf.matmul(tf.tanh(zwb), u_hat)
+
+    psi = tf.matmul(1 - tf.tanh(zwb)**2, w)
+    psi_u = tf.matmul(psi, u_hat)
+
+    logdet_jacobian = tf.log(1e-10 + tf.abs(1 + psi_u))
+
+#    if(summary):
+#      variable_summaries(u, (scope or 'norm_flow_u')+'_weights')
+#      variable_summaries(w, (scope or 'norm_flow_w')+'_weights')
+
+    return [f_z, logdet_jacobian]
+
+
+def log_stdnormal(z):
+  # Computes elementwise log standart normal
+  # \log p(z) = \log \mathcal{N}(z | 0, I)
+  c = 0.5 * math.log(2 * math.pi)
+  return c - z**2 / 2
+
+
+def lognormal(z, z_mean, z_log_var, eps = 0.0):
+  # Computes elementwise log prob
+  # \log p(z) = \log \mathcal{N}(z | z_mean, z_log_var)
+  c = 0.5 * math.log(2 * math.pi)
+  return c - z_log_var/2 - (z - z_mean)**2 / (2*tf.exp(z_log_var) + eps)
+
 
 def optimizer(loss, learningRate, var_list=None):
   if var_list:
