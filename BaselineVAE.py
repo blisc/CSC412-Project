@@ -28,21 +28,24 @@ class VariationalAutoencoder:
     with tf.variable_scope("Recognition") as scope:
       self.z_mean, self.z_log_std = self._recognition_network(self.images)
       epsilon = tf.random_normal((self.batchSize, self.latentDimension), 0, 1, dtype=tf.float32)
-      self.z = tf.add(self.z_mean, tf.mul(tf.exp(self.z_log_std), epsilon))
+      self.z = tf.add(self.z_mean, tf.multiply(tf.sqrt(tf.exp(self.z_log_std)), epsilon))
     
     with tf.variable_scope("Generator") as scope:
-      self.reconstructrion = self._generator_network(self.z)
+      self.reconstruction = self._generator_network(self.z)
       
     # loss is -KL(q(z|x)||p(z)) + mean(log(p(x|z)))
-    # KL + reconstructrion loss
+    # KL + reconstruction loss
     # q(z|x) is self.z
-    reconstructrion_loss = -tf.reduce_sum(self.images * tf.log(1e-10 + self.reconstructrion)
-                           + (1-self.images) * tf.log(1e-10 + 1 - self.reconstructrion),
+    reconstruction_loss = -tf.reduce_sum(self.images * tf.log(1e-10 + self.reconstruction)
+                           + (1-self.images) * tf.log(1e-10 + 1 - self.reconstruction),
                            1)
-    latent_loss = -0.5 * tf.reduce_sum(1 + 2*self.z_log_std
+    #latent_loss = -0.5 * tf.reduce_sum(1 + 2*self.z_log_std
+    #                                       - tf.square(self.z_mean) 
+    #                                       - tf.square(tf.exp(self.z_log_std)), 1)                       
+    latent_loss = -0.5 * tf.reduce_sum(1 + self.z_log_std
                                            - tf.square(self.z_mean) 
                                            - tf.square(tf.exp(self.z_log_std)), 1)                       
-    self.loss = tf.reduce_mean(reconstructrion_loss+latent_loss)
+    self.loss = tf.reduce_mean(reconstruction_loss+latent_loss)
     
     self.optimizer = optimizer(self.loss, self.learningRate)
     
@@ -88,8 +91,8 @@ class VariationalAutoencoder:
           checkpoint_file = os.path.join(FLAGS.checkpoint_dir, 'checkpoint')
           saver.save(sess, checkpoint_file, global_step=epoch)
           
-          #Plot reconstructrion
-          output = sess.run(self.reconstructrion, feed_dict={self.images:batch})
+          #Plot reconstruction
+          output = sess.run(self.reconstruction, feed_dict={self.images:batch})
           plot_comparison(batch[0], output[0], epoch, 1)
           plot_comparison(batch[50], output[50], epoch, 2)
           plot_comparison(batch[100], output[100], epoch, 3)
@@ -98,8 +101,10 @@ class VariationalAutoencoder:
     hid_1 = tf.nn.relu(linear(data,self.hiddenLayerSize,'hid_1'))
     hid_2 = tf.nn.relu(linear(hid_1,self.hiddenLayerSize,'hid_2'))
     
-    z_mean = tf.nn.relu(linear(hid_2,self.latentDimension,'z_mean'))
-    z_log_std = tf.nn.relu(linear(hid_2,self.latentDimension,'z_log_std'))
+    #z_mean = tf.nn.relu(linear(hid_2,self.latentDimension,'z_mean'))
+    #z_log_std = tf.nn.relu(linear(hid_2,self.latentDimension,'z_log_std'))
+    z_mean = linear(hid_2,self.latentDimension,'z_mean')
+    z_log_std = linear(hid_2,self.latentDimension,'z_log_std')
     
     return (z_mean, z_log_std)
     
@@ -107,9 +112,9 @@ class VariationalAutoencoder:
     hid_1 = tf.nn.relu(linear(sample,self.hiddenLayerSize,'hid_1'))
     hid_2 = tf.nn.relu(linear(hid_1,self.hiddenLayerSize,'hid_2'))
     
-    reconstructrion = tf.nn.relu(linear(hid_2,784,'z_mean'))
+    reconstruction = tf.nn.sigmoid(linear(hid_2,784,'z_mean'))
     
-    return reconstructrion
+    return reconstruction
     
 if __name__ == '__main__':
   with tf.device('/gpu'):
