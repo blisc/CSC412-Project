@@ -126,6 +126,7 @@ class VariationalAutoencoder:
     return reconstructrion
     
 if __name__ == '__main__':
+  print("VAE Baseline")
   with tf.device('/gpu'):
     model = VariationalAutoencoder(batchSize=128, hiddenLayerSize=500, trainingEpochs=100, learningRate=0.001, latentDimension=20)
     model.createModel()

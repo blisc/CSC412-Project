@@ -39,16 +39,16 @@ class VariationalAutoencoder:
     
     with tf.variable_scope("Generator") as scope:
       # self.reconstructon is the mean (i.e. output of VAE network, which is Bernoulli)
-      self.reconstruction, sumLogDetJ, f_z = self._generator_network(self.z)
+      self.reconstruction, self.sumLogDetJ, f_z = self._generator_network(self.z)
 
     # Compute the loss function
-    log_q0_z0 = lognormal(self.z, self.z_mean, self.z_log_var)
-    log_p_x_given_zk = -tf.reduce_sum(self.images * tf.log(1e-10 + self.reconstruction) + \
+    self.log_q0_z0 = lognormal(self.z, self.z_mean, self.z_log_var)
+    self.log_p_x_given_zk = -tf.reduce_sum(self.images * tf.log(1e-10 + self.reconstruction) + \
                                      (1 - self.images) * tf.log(1e-10 + 1 - self.reconstruction))
-    log_p_zk = log_stdnormal(f_z)
-    log_p_x_and_zk = log_p_x_given_zk + log_p_zk
+    self.log_p_zk = log_stdnormal(f_z)
+    self.log_p_x_and_zk = self.log_p_x_given_zk + self.log_p_zk
 
-    self.loss = tf.reduce_mean(log_p_x_and_zk + sumLogDetJ - log_q0_z0)
+    self.loss = tf.reduce_mean(self.log_p_x_and_zk + self.sumLogDetJ - self.log_q0_z0)
     self.optimizer = optimizer(self.loss, self.learningRate)
 
     tf.summary.scalar(self.loss.op.name, self.loss)
@@ -82,6 +82,12 @@ class VariationalAutoencoder:
         for i in range(total_batch):
           batch, _ = self.dataSamples.sample(self.batchSize)
           _, loss = sess.run([self.optimizer, self.loss], feed_dict={self.images:batch})
+          #DEBUG
+          # log_q0_z0, log_p_x_given_zk, log_p_zk, sumLogDetJ = sess.run([self.log_q0_z0, self.log_p_x_given_zk, self.log_p_zk, self.sumLogDetJ], feed_dict={self.images:batch})
+          # print("log_q0_z0: {}".format(log_q0_z0))
+          # print("log_p_x_given_zk: {}".format(log_p_x_given_zk))
+          # print("log_p_zk: {}".format(log_p_zk))
+          # print("sumLogDetJ: {}".format(sumLogDetJ))
           avg_loss += loss / self.trainingSize * self.batchSize
 
         if epoch % 1 == 0:
@@ -107,8 +113,8 @@ class VariationalAutoencoder:
     
     #z_mean = tf.nn.relu(linear(hid_2,self.latentDimension,'z_mean'))
     #z_log_var = tf.nn.relu(linear(hid_2,self.latentDimension,'z_log_var'))
-    z_mean = linear(hid_2,self.latentDimension,'z_mean')
-    z_log_var = linear(hid_2,self.latentDimension,'z_log_var')
+    z_mean = tf.nn.tanh(linear(hid_2,self.latentDimension,'z_mean'))
+    z_log_var = tf.nn.tanh(linear(hid_2,self.latentDimension,'z_log_var'))
     
     return (z_mean, z_log_var)
 
@@ -118,6 +124,8 @@ class VariationalAutoencoder:
     init_density_std = self.z_log_var
     f_z = sample
     sumLogDetJ = None # shape = size of z x size of f = latent dim x num flow layers?
+    # sumLogDetJ = []
+    
     for i in range(0, self.flowLayers):
       # Set norm flow layer dimension to be same as latent dimension
       currScope = 'norm_flow_' + str(i+1)
@@ -126,6 +134,14 @@ class VariationalAutoencoder:
         sumLogDetJ = logDetJ
       else:
         sumLogDetJ += logDetJ
+        
+      # sumLogDetJ.append(logDetJ)
+      
+    # print(len(sumLogDetJ))
+    # print(sumLogDetJ[0].get_shape())
+    # sumLogDetJ = tf.concat(1, sumLogDetJ)
+    # print(sumLogDetJ.get_shape())
+    # sumLogDetJ = tf.reduce_sum(sumLogDetJ
 
     hid_1 = tf.nn.relu(linear(f_z,self.hiddenLayerSize,'hid_1'))
     hid_2 = tf.nn.relu(linear(hid_1,self.hiddenLayerSize,'hid_2'))
@@ -136,6 +152,7 @@ class VariationalAutoencoder:
 
 
 if __name__ == '__main__':
+  print("VAE Normalizing Flows")
   with tf.device('/gpu'):
     model = VariationalAutoencoder(batchSize=128, hiddenLayerSize=500, trainingEpochs=100, \
                                    learningRate=0.001, latentDimension=20, flowLayers=5)

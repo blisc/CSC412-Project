@@ -75,11 +75,13 @@ def lognormal(z, z_mean, z_log_var, eps = 0.0):
   return c - z_log_var/2 - (z - z_mean)**2 / (2*tf.exp(z_log_var) + eps)
 
 
-def optimizer(loss, learningRate, var_list=None):
+def optimizer(loss, learningRate, var_list=None, opt=None):
+  if opt == None:
+    opt = tf.train.AdamOptimizer
   if var_list:
-    optimizer = tf.train.AdamOptimizer(learningRate).minimize(loss, var_list = var_list)
+    optimizer = opt(learningRate).minimize(loss, var_list = var_list)
   else:
-    optimizer = tf.train.AdamOptimizer(learningRate).minimize(loss)
+    optimizer = opt(learningRate).minimize(loss)
   return optimizer
 
 def variable_summaries(var, name):
