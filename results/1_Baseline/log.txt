@@ -4,37 +4,38 @@ I tensorflow/stream_executor/dso_loader.cc:128] successfully opened CUDA library
 I tensorflow/stream_executor/dso_loader.cc:128] successfully opened CUDA library libcuda.so.1 locally
 I tensorflow/stream_executor/dso_loader.cc:128] successfully opened CUDA library libcurand.so locally
 I tensorflow/core/common_runtime/gpu/gpu_device.cc:885] Found device 0 with properties: 
-name: GeForce GTX TITAN X
-major: 5 minor: 2 memoryClockRate (GHz) 1.076
-pciBusID 0000:03:00.0
-Total memory: 11.95GiB
-Free memory: 11.84GiB
+name: TITAN X (Pascal)
+major: 6 minor: 1 memoryClockRate (GHz) 1.531
+pciBusID 0000:83:00.0
+Total memory: 11.93GiB
+Free memory: 11.78GiB
 I tensorflow/core/common_runtime/gpu/gpu_device.cc:906] DMA: 0 
 I tensorflow/core/common_runtime/gpu/gpu_device.cc:916] 0:   Y 
-I tensorflow/core/common_runtime/gpu/gpu_device.cc:975] Creating TensorFlow device (/gpu:0) -> (device: 0, name: GeForce GTX TITAN X, pci bus id: 0000:03:00.0)
-Extracting data/train-images-idx3-ubyte.gz
-Extracting data/train-labels-idx1-ubyte.gz
-Extracting data/t10k-images-idx3-ubyte.gz
-Extracting data/t10k-labels-idx1-ubyte.gz
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:975] Creating TensorFlow device (/gpu:0) -> (device: 0, name: TITAN X (Pascal), pci bus id: 0000:83:00.0)
+VAE Baseline
+Extracting ../data/train-images-idx3-ubyte.gz
+Extracting ../data/train-labels-idx1-ubyte.gz
+Extracting ../data/t10k-images-idx3-ubyte.gz
+Extracting ../data/t10k-labels-idx1-ubyte.gz
 Building Model
 Starting training
-('Epoch:', '0001', 'loss=', '196.399206283')
-('Epoch:', '0006', 'loss=', '150.763151888')
-('Epoch:', '0011', 'loss=', '148.229154557')
-('Epoch:', '0016', 'loss=', '146.963290527')
-('Epoch:', '0021', 'loss=', '146.239552767')
-('Epoch:', '0026', 'loss=', '145.858552669')
-('Epoch:', '0031', 'loss=', '145.477177246')
-('Epoch:', '0036', 'loss=', '145.197406771')
-('Epoch:', '0041', 'loss=', '144.797584440')
-('Epoch:', '0046', 'loss=', '144.817803743')
-('Epoch:', '0051', 'loss=', '144.591949544')
-('Epoch:', '0056', 'loss=', '144.615651237')
-('Epoch:', '0061', 'loss=', '144.242388770')
-('Epoch:', '0066', 'loss=', '144.302417350')
-('Epoch:', '0071', 'loss=', '144.185409538')
-('Epoch:', '0076', 'loss=', '143.908319694')
-('Epoch:', '0081', 'loss=', '144.171689941')
-('Epoch:', '0086', 'loss=', '143.847358691')
-('Epoch:', '0091', 'loss=', '143.912066406')
-('Epoch:', '0096', 'loss=', '143.635130371')
+('Epoch:', '0001', 'loss=', '181.379076400')
+('Epoch:', '0006', 'loss=', '121.725770573')
+('Epoch:', '0011', 'loss=', '117.547526546')
+('Epoch:', '0016', 'loss=', '115.542093864')
+('Epoch:', '0021', 'loss=', '114.093020492')
+('Epoch:', '0026', 'loss=', '113.471411133')
+('Epoch:', '0031', 'loss=', '112.547191667')
+('Epoch:', '0036', 'loss=', '112.161817660')
+('Epoch:', '0041', 'loss=', '111.838552327')
+('Epoch:', '0046', 'loss=', '111.459638900')
+('Epoch:', '0051', 'loss=', '111.190008105')
+('Epoch:', '0056', 'loss=', '110.968696501')
+('Epoch:', '0061', 'loss=', '110.794639616')
+('Epoch:', '0066', 'loss=', '110.683344531')
+('Epoch:', '0071', 'loss=', '110.356088851')
+('Epoch:', '0076', 'loss=', '110.279254443')
+('Epoch:', '0081', 'loss=', '110.198423145')
+('Epoch:', '0086', 'loss=', '110.079333626')
+('Epoch:', '0091', 'loss=', '109.865099023')
+('Epoch:', '0096', 'loss=', '109.786426774')
