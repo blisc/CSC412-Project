@@ -1,4 +1,4 @@
-\begin{thebibliography}{2}
+\begin{thebibliography}{3}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -9,6 +9,14 @@
 Diederik~P Kingma and Max Welling.
 \newblock Auto-encoding variational bayes.
 \newblock \emph{arXiv preprint arXiv:1312.6114}, 2013.
+
+\bibitem[Kingma et~al.(2016)Kingma, Salimans, Jozefowicz, Chen, Sutskever, and
+  Welling]{KS16}
+Diederik~P Kingma, Tim Salimans, Rafal Jozefowicz, Xi~Chen, Ilya Sutskever, and
+  Max Welling.
+\newblock Improved variational inference with inverse autoregressive flow.
+\newblock In \emph{Advances in Neural Information Processing Systems 29}, pages
+  4743--4751. 2016.
 
 \bibitem[Rezende and Mohamed(2015)]{RM15}
 Danilo~Jimenez Rezende and Shakir Mohamed.

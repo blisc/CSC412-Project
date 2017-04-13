@@ -75,6 +75,8 @@
 \newcommand{\D[1]}{\mathrm{d}{#1}}
 \newcommand{\KL}{\mathbb{D}_{\text{KL}}}
 \newcommand{\N}{\mathcal{N}}
+\newcommand{\bsig}{\boldsymbol{\sigma}}
+\newcommand{\bmu}{\boldsymbol{\mu}}
 
 \begin{document}
 
@@ -86,9 +88,9 @@ needs to be computationally tractable, yet flexible enough to approximate the tr
 paper, we discuss an application of variational inference in dimensionality reduction.  We experiment
 with the variational autoencoder (VAE), which was developed by \citet{KW13}, by comparing two
 different variational inference methods.  The first method is the vanilla VAE and the second method
-improves variational inference by introducing normalizing flows, developed by \citet{RM15}, which 
-increases the complexity of an initial simple distribution, so that more complex true posteriors can
-be potentially approximated.
+improves variational inference by introducing normalizing flows, developed by \citet{RM15}. Normalizing 
+flows increase the complexity of an initial simple distribution, so that more complex true posteriors can
+potentially be approximated.
 \end{abstract}
 
 \section{Introduction}
@@ -135,7 +137,7 @@ So, a posterior distribution, $q(\bz \given \bx)$, is introduced allowing us to 
 the marginal likelihood:
 \begin{align}
 	\log p(\bx) &= \log\int_{\bz} p(\bx \given \bz)\,p(\bz)\,\D[\bz] \\
-			&= \log\int_{\bz} \frac{q(\bz \given \bx)}{q(\bz \given \bx)}p(\bx \given \bz)\,p(\bz)\,\D[\bz] \\
+%			&= \log\int_{\bz} \frac{q(\bz \given \bx)}{q(\bz \given \bx)}p(\bx \given \bz)\,p(\bz)\,\D[\bz] \\
 			&= \log \left(\E_q\left[\frac{p(\bx, \bz)}{q(\bz \given \bx)}\right]\right) \label{eq:evid} \\
 			&\geq \E_q\left[\log p(\bx,\bz)\right] - \E_q\left[\log q(\bz \given \bx)\right] \label{eq:pq_lb} \\
 			&= \log p(\bx) - \KL\left[q(\bz \given \bx) \,||\, p(\bz \given \bx)\right] \label{eq:KL_evid} \\
@@ -155,20 +157,30 @@ In an autoencoder, there are two main stages: the encoder stage and the decoder 
 both neural networks.  The input to the encoder, or recognition, stage is the high dimension feature 
 vector that we want to reduce into a space with lower dimensionality.  In a VAE, the output of the 
 encoder stage are parameters to the approximate posterior, $q(\bz \given \bx)$.  If $q(\bz \given \bx)$
-is a Gaussian, the parameters that are output would be the mean, $\boldsymbol{\mu}$, and the variance, 
-$\boldsymbol{\sigma}^2$.  In this case, the covariance matrix is a diagonal matrix.
+is a Gaussian, the parameters that are output would be the mean, $\bmu$, and the variance, 
+$\bsig^2$.  In this case, the covariance matrix is a diagonal matrix. So, both $\bmu\in\R^D$
+and $\bsig^2\in\R^D$, where $D$ is the dimension of the Gaussian.
 
 The inputs to the decoder, or generator, are sampled values, $\bz$, from the distribution, $q(\bz \given \bx)$.  
-For $q(\bz \given \bx) \sim \N(\bz \given \boldsymbol{\mu}, \boldsymbol{\sigma}^2)$, the sampled values 
-are: $\bz = \boldsymbol{\mu} + \boldsymbol{\sigma}\odot\boldsymbol{\epsilon}$, where $\boldsymbol{\epsilon} 
-\sim \N(0, \mathbf{I})$.  The output of the decoder stage is a feature vector which has the same dimension
-as that of the input vector.  They are parameters to $p(\bx \given \bz)$.
+For $q(\bz \given \bx) \sim \N(\bz \given \bmu, \bsig^2)$, the sampled values are: $\bz = \bmu + \bsig\odot
+\boldsymbol{\epsilon}$, where $\boldsymbol{\epsilon} \sim \N(0, \mathbf{I})$.  The output of the decoder 
+stage is a feature vector which has the same dimension as that of the input vector.  They are parameters 
+to $p(\bx \given \bz)$.
 
 In order to train the VAE, we want to minimize the negative variational lower bound (negative of Equation 
 \ref{eq:ELBO}).  It is: $\KL\left[q(\bz \given \bx) \,||\, p(\bz)\right] - \E_{q(\bz \given \bx)}\left[\log p(\bx \given \bz)\right]$.
 The first term measures how different the approximate posterior is from $p(\bz)$, so that a smaller value
 indicates a better approximation.  The second term is the reconstruction error, which describes how faithful
-the reconstructed input is to the actual input.
+the reconstructed input is to the actual input.  The loss function for the VAE is:
+\begin{equation}
+	\mathcal{F}(\bx) = -\frac{1}{2}\sum_{d=1}^D \left(1 + \log\bsig_d^2 - \bmu_d^2 - \bsig_d^2\right)
+%							_{\KL\left[q(\bz \given \bx) \,||\, p(\bz)\right]}
+					- \left(\sum_{k=1}^K \bx_k \log \hat{\bx}_k + 
+								\left(1 - \bx_k\right)\log\left(1 - \hat{\bx}_k\right)\right)
+%								_{\E_{q(\bz \given \bx)}\left[\log p(\bx \given \bz)\right]}
+\end{equation}
+where $K$ is the dimension of the input vector and $\hat{\bx}$ being the reconstructed input.  This is
+computed for every sampled value of $\bz_i \sim q(\bz \given \bx)$ and then averaged.
 
 \subsection{VAE with Normalizing Flow}
 In \citet{RM15}, variational inference is improved by introducing normalizing flows.  Recall that in
@@ -183,6 +195,7 @@ illustrates how inferences are made using normalizing flow and how output is gen
 \caption{VAE with normalizing flow --- flow diagram, from \cite{RM15}.}
 \label{fig:VAENormFlow}
 \end{center}
+\vspace{-2em}
 \end{figure}
 
 Normalizing flow describes a series of transformations on the initial probability distribution.  These 
@@ -191,7 +204,7 @@ obtained.  The transformations, $f$, must be chosen such that they are smooth an
 $f^{-1} = g$, where $g(f(\bz)) = \bz$).  Also, if $\bz \sim q(\bz)$, then the transformed random variable, 
 $\bz_1 = f(\bz)$, has the following distribution, $q(\bz_1)$:
 \begin{equation}
-	\bz_1 \sim q(\bz) \left|\det\frac{\partial f}{\partial\bz}\right|^{-1}
+	\bz_1 \sim q(\bz_1) = q(\bz) \left|\det\frac{\partial f}{\partial\bz}\right|^{-1}
 \end{equation}
 
 We can perform $K$ transformations to the initial random variable, $\bz_0$, to obtain the final random variable,
@@ -208,10 +221,10 @@ The transformations, $f$, that are used are of the form:
 	f(\bz) = \bz + \bu \cdot h(\bw^\top\bz + b)
 \end{equation}
 where $\bu, \bw \in \R^D$, $b \in \R$, and $h$ is a smooth non-linearity that is at least once differentiable.
-We use $h(\cdot) = \tanh(\cdot)$ and $h'(\cdot) = 1 - \tanh^2(\cdot)$ in our experiments.  Plugging this into
-Equation \ref{eq:logqkzk}, we get:
+This is called a planar flow.  We use $h(\cdot) = \tanh(\cdot)$ and $h'(\cdot) = 1 - \tanh^2(\cdot)$ in our 
+experiments.  Plugging this into Equation \ref{eq:logqkzk}, we get:
 \begin{equation}
-	\log q_K(\bz_K) = \log q_0(\bz) - \sum_{k=1}^K \log \left|1 + \bu_k^\top\psi_k(\bz_{k-1})\right|
+	\log q_K(\bz_K) = \log q_0(\bz_0) - \sum_{k=1}^K \log \left|1 + \bu_k^\top\psi_k(\bz_{k-1})\right|
 \end{equation}
 where $\psi_k(\bz) = h'(\bw^\top\bz + b)\bw$. With these equations, the function we want to minimize becomes:
 \begin{equation}
@@ -220,14 +233,24 @@ where $\psi_k(\bz) = h'(\bw^\top\bz + b)\bw$. With these equations, the function
 \end{equation}
 
 \section{Related Work}
+\citet{RM15} also introduce another type of flow called radial flow.  Radial flow differs from planar flow in the
+transformation function, $f$.  The transformation is $f(\bz) = \bz + \beta\cdot h(\alpha, r)(\bz - \bz_0)$, where
+$\alpha \in \R^+$ and $\beta \in \R$.  The changes to the initial distribution, $q_0$, differ between the two
+transformation functions.  Planar flows apply contractions and expansions perpendicular to the hyperplane,
+$\bw^\top\bz + b$, whereas radial flows apply contractions and expansions radially around $\bz_0$.
 
+Inverse autoregressive flow, which is a part of the family of normalizing flows, was introduced by \citet{KS16}.
+In this flow, the series of transformations is initialized by sampling $\bz_0 \sim q(\bz \given \bx)$, as before. 
+Then, each successive $\bz$ is computed using the transformation: $\bz_t = \bmu_t + \bsig_t \odot \bz_{t-1}$,
+where $t$ indexes the transformations.  After $T$ transformations, the log distribution becomes: 
+$\log q(\bz_T \given \bx) = -\sum_{i=1}^D\left(\frac{1}{2}\epsilon_i^2 + \frac{1}{2}\log(2\pi) + \sum_{t=0}^T\log\sigma_{t,i}\right)$
+The resulting log marginal probabilities proved to be larger than those computed using previous methods of
+variational inference.
 
-
-\section{Results Comparison}
+\section{Comparison}
 
 \subsection{Baseline (Vanilla) VAE}
-For the vanilla VAE, we want to maximize the variational lower bound or minimize the negative variational
-lower bound.
+
 
 
 \subsection{VAE with Normalizing Flow}
