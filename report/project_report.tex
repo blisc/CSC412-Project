@@ -45,7 +45,7 @@
   \And
   Jingyao (Jason) Li \\
   University of Toronto \\
-  \texttt{jasons\_email@toronto.edu}\\
+  \texttt{jingyao.li@mail.utoronto.ca}\\
   %% Address \\
   %% \texttt{email} \\
   %% \AND
@@ -65,12 +65,16 @@
   %% \texttt{email} \\
 }
 
+\newcommand{\R}{\mathbb{R}}
 \newcommand{\E}{\mathbb{E}}
 \newcommand{\bz}{\mathbf{z}}
 \newcommand{\bx}{\mathbf{x}}
+\newcommand{\bu}{\mathbf{u}}
+\newcommand{\bw}{\mathbf{w}}
 \newcommand{\given}{\,|\,}
 \newcommand{\D[1]}{\mathrm{d}{#1}}
 \newcommand{\KL}{\mathbb{D}_{\text{KL}}}
+\newcommand{\N}{\mathcal{N}}
 
 \begin{document}
 
@@ -88,16 +92,23 @@ be potentially approximated.
 \end{abstract}
 
 \section{Introduction}
-Nowadays, with increasingly large amounts of data, making posterior inferences is intractable 
-since the evidence in Bayes' Rule consists of a computationally intractable integral.  Stochastic 
-variational inference was developed that makes this inference more tractable, by turning the 
-inference problem into an optimization problem.
+Nowadays, with increasingly large amounts of data, making posterior inferences is intractable since 
+the evidence in Bayes' Rule consists of a computationally intractable integral.  Stochastic variational 
+inference was developed that makes this inference more tractable, by turning the inference problem into
+an optimization problem.  In variational inference, an intractable posterior distribution is approximated by
+a simpler probability distribution, whose parameters are optimized.  
+
+Unfortunately, extremely complex posterior distributions may not be successfully approximated using 
+such simple distributions, so novel methods must be developed to improve the approximations. In this 
+paper, we discuss various methods that improve posterior distribution approximations and also compare
+the performance of two different methods of variational inference.
 
 
 \section{Formal Description}
 
 \begin{figure}[htdp]
 \centering
+\hspace{1.5em}
 \begin{tikzpicture}
 \tikzstyle{main}=[circle, minimum size = 10mm, thick, draw =black!80, node distance = 16mm]
 \tikzstyle{connect}=[-latex, thick]
@@ -124,7 +135,8 @@ So, a posterior distribution, $q(\bz \given \bx)$, is introduced allowing us to 
 the marginal likelihood:
 \begin{align}
 	\log p(\bx) &= \log\int_{\bz} p(\bx \given \bz)\,p(\bz)\,\D[\bz] \\
-			&= \log\int_{\bz} \frac{q(\bz \given \bx)}{q(\bz \given \bx)}p(\bx \given \bz)\,p(\bz)\,\D[\bz] \label{eq:evid} \\
+			&= \log\int_{\bz} \frac{q(\bz \given \bx)}{q(\bz \given \bx)}p(\bx \given \bz)\,p(\bz)\,\D[\bz] \\
+			&= \log \left(\E_q\left[\frac{p(\bx, \bz)}{q(\bz \given \bx)}\right]\right) \label{eq:evid} \\
 			&\geq \E_q\left[\log p(\bx,\bz)\right] - \E_q\left[\log q(\bz \given \bx)\right] \label{eq:pq_lb} \\
 			&= \log p(\bx) - \KL\left[q(\bz \given \bx) \,||\, p(\bz \given \bx)\right] \label{eq:KL_evid} \\
 			&= -\KL\left[q(\bz \given \bx) \,||\, p(\bz)\right] + \E_{q(\bz \given \bx)}\left[\log p(\bx \given \bz)\right] \label{eq:ELBO}
@@ -141,33 +153,82 @@ flexible enough to be able to match $p(\bz \given \bx)$ such that the KL diverge
 
 In an autoencoder, there are two main stages: the encoder stage and the decoder stage, which are
 both neural networks.  The input to the encoder, or recognition, stage is the high dimension feature 
-vector that we want to reduce to a space with lower dimensionality.  In a VAE, the output of the 
+vector that we want to reduce into a space with lower dimensionality.  In a VAE, the output of the 
 encoder stage are parameters to the approximate posterior, $q(\bz \given \bx)$.  If $q(\bz \given \bx)$
-is a Gaussian, the parameters would be the mean, $\boldsymbol{\mu}$, and variance, $\boldsymbol{\sigma}^2$.
-In this case, the covariance matrix is a diagonal matrix.
+is a Gaussian, the parameters that are output would be the mean, $\boldsymbol{\mu}$, and the variance, 
+$\boldsymbol{\sigma}^2$.  In this case, the covariance matrix is a diagonal matrix.
 
-We want to minimize the negative ELBO (negative of Equation \ref{eq:ELBO}) to train the VAE.  It is: 
-$\KL\left[q(\bz \given \bx) \,||\, p(\bz)\right] - \E_{q(\bz \given \bx)}\left[\log p(\bx \given \bz)\right]$
+The inputs to the decoder, or generator, are sampled values, $\bz$, from the distribution, $q(\bz \given \bx)$.  
+For $q(\bz \given \bx) \sim \N(\bz \given \boldsymbol{\mu}, \boldsymbol{\sigma}^2)$, the sampled values 
+are: $\bz = \boldsymbol{\mu} + \boldsymbol{\sigma}\odot\boldsymbol{\epsilon}$, where $\boldsymbol{\epsilon} 
+\sim \N(0, \mathbf{I})$.  The output of the decoder stage is a feature vector which has the same dimension
+as that of the input vector.  They are parameters to $p(\bx \given \bz)$.
+
+In order to train the VAE, we want to minimize the negative variational lower bound (negative of Equation 
+\ref{eq:ELBO}).  It is: $\KL\left[q(\bz \given \bx) \,||\, p(\bz)\right] - \E_{q(\bz \given \bx)}\left[\log p(\bx \given \bz)\right]$.
 The first term measures how different the approximate posterior is from $p(\bz)$, so that a smaller value
-indicates a better approximation.  The second term is the reconstruction error.
+indicates a better approximation.  The second term is the reconstruction error, which describes how faithful
+the reconstructed input is to the actual input.
 
 \subsection{VAE with Normalizing Flow}
+In \citet{RM15}, variational inference is improved by introducing normalizing flows.  Recall that in
+variational inference, we want $q(\bz \given \bx)$ to be flexible enough to approximate the true posterior,
+$p(\bz \given \bx)$, since the true posterior can be extremely complicated. Figure \ref{fig:VAENormFlow} 
+illustrates how inferences are made using normalizing flow and how output is generated.
+
+\begin{figure}[htbp]
+\hspace{1em}
+\begin{center}
+	\includegraphics[width=0.6\textwidth]{NormFlowDiagram.png}
+\caption{VAE with normalizing flow --- flow diagram, from \cite{RM15}.}
+\label{fig:VAENormFlow}
+\end{center}
+\end{figure}
+
+Normalizing flow describes a series of transformations on the initial probability distribution.  These 
+transformations are invertible mappings and at the end of the series, a new probability distribution is 
+obtained.  The transformations, $f$, must be chosen such that they are smooth and invertible (i.e. 
+$f^{-1} = g$, where $g(f(\bz)) = \bz$).  Also, if $\bz \sim q(\bz)$, then the transformed random variable, 
+$\bz_1 = f(\bz)$, has the following distribution, $q(\bz_1)$:
+\begin{equation}
+	\bz_1 \sim q(\bz) \left|\det\frac{\partial f}{\partial\bz}\right|^{-1}
+\end{equation}
+
+We can perform $K$ transformations to the initial random variable, $\bz_0$, to obtain the final random variable,
+$\bz_K$, where:
+\begin{equation}
+	\bz_K = f_K(f_{K-1}( \,\cdot\cdot\cdot\, (f_2(f_1(\bz_0)))))
+\end{equation}
+\begin{equation} \label{eq:logqkzk}
+	\log q_K(\bz_K) = \log q_0(\bz_0) - \sum_{k=1}^K \log \left|\det\frac{\partial f_k}{\partial\bz_{k-1}}\right|
+\end{equation}
+
+The transformations, $f$, that are used are of the form:
+\begin{equation}
+	f(\bz) = \bz + \bu \cdot h(\bw^\top\bz + b)
+\end{equation}
+where $\bu, \bw \in \R^D$, $b \in \R$, and $h$ is a smooth non-linearity that is at least once differentiable.
+We use $h(\cdot) = \tanh(\cdot)$ and $h'(\cdot) = 1 - \tanh^2(\cdot)$ in our experiments.  Plugging this into
+Equation \ref{eq:logqkzk}, we get:
+\begin{equation}
+	\log q_K(\bz_K) = \log q_0(\bz) - \sum_{k=1}^K \log \left|1 + \bu_k^\top\psi_k(\bz_{k-1})\right|
+\end{equation}
+where $\psi_k(\bz) = h'(\bw^\top\bz + b)\bw$.
+
 
 \section{Related Work}
 
 
 
-\section{Comparison}
+\section{Results Comparison}
 
-\subsection{Baseline VAE}
+\subsection{Baseline (Vanilla) VAE}
 For the vanilla VAE, we want to maximize the variational lower bound or minimize the negative variational
 lower bound.
 
 
 \subsection{VAE with Normalizing Flow}
-In \citet{RM15}, variational inference is improved by introducing normalizing flows.  Recall that in
-variational inference, we want $q(\bz \given \bx)$ to be flexible enough to approximate the true posterior,
-$p(\bz \given \bx)$, since the true posterior can be extremely complicated.
+
 
 
 \section{Limitations}
