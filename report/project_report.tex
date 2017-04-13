@@ -252,7 +252,7 @@ $\log q(\bz_T \given \bx) = -\sum_{i=1}^D\left(\frac{1}{2}\epsilon_i^2 + \frac{1
 The resulting log marginal probabilities proved to be larger than those computed using previous methods of
 variational inference.
 
-\citet{D16} introduce another type of transformation called the real-values non-volume preserving (real NVP) 
+\citet{D16} introduce another type of transformation called the real-valued non-volume preserving (real NVP) 
 transformation. Similar to normalizing flow, \citet{D16} propose an invertible transformation from a simple
 latent distribution to a complex distribution of the form:
 \begin{align}
@@ -268,10 +268,10 @@ samples using this transformation performs better than autoregressive models suc
 \section{Results and Comparison}
 
 \subsection{Overview}
-We compared the performance of the two models on the MNIST dataset to see the effect of the normalizing
-flow. We used the same model and hyperparameters for both models to achieve a fair comparison. The only 
+We compared the performance of the two models on the MNIST dataset to see the effects of the normalizing
+flow layers. We used the same model and hyperparameters to achieve a fair comparison. The only 
 difference between the models was the training loss, $\mathcal{F}$, as presented in Section 
-\ref{sec:FormalDescription} and the additional of normalizing flow layers from the latent sample to the 
+\ref{sec:FormalDescription} and the addition of normalizing flow layers from the latent sample to the 
 generator network. We created 3 normalizing flow models, each with a different number of normalizing flow layers.
 
 For each model, we trained them for 100 epochs of the dataset with the Adam optimizer. In order to approximate 
@@ -310,8 +310,8 @@ train the models.
 \end{table}
 
 \subsection{Baseline (Vanilla) VAE}
-After training the baseline VAE to the MNIST dataset, the variational bound of the model was computed
-by averaging the loss across 10 samples of each data point from the data set. The variational lower bound
+After training the baseline VAE to the MNIST dataset, the negative variational bound of the model was computed
+by averaging the loss across 10 samples of the latent space given each data point from the data set. The negative variational lower bound
 was approximately 109.23. The training loss is shown in Figure \ref{fig:BaselineLoss}.
 
 \begin{figure}[htbp]\hspace{-2.5em}
@@ -339,20 +339,20 @@ was approximately 109.23. The training loss is shown in Figure \ref{fig:Baseline
 In the same manner as the baseline VAE, we approximated the log-likelihood using the lower bound
 as stated in Equation \ref{eq:ELBO_NormFlow}. In order to evaluate the performance of the normalizing 
 flow layers, we trained 3 models with 3, 5 and 8 normalizing flow layers to see how much of an impact 
-these layers have. We obtained variational bound values of 111.96, 105.09 and 107.67 respectively.  
+these layers have. We obtained negative variational bound values of 111.96, 105.09 and 107.67 respectively.  
 The training loss for all 3 models is shown in Figure \ref{fig:NormFlowLoss}.
 
 
 \subsection{Model Comparison}
 Comparing the variational bound values of the 4 models, we see that the model with 8 normalizing flow layers 
 performs the best, followed by the model with 5 layers. An interesting observation is that the model with 
-3 normalizing flows layers performs worse than the baseline model. We expected that the normalizing flow 
+3 normalizing flows layers performs worse than the baseline model. We expected that the normalizing flows 
 would have been able to better approximate the posterior than a model without those layers.
 
 Figures \ref{fig:SampleBaseline}, \ref{fig:NormFlow35} and \ref{fig:NormFlow8} show the reconstructions 
 produced by each model. We took the first 100 images from the MNIST training set and plot their reconstruction. 
 Qualitatively, it seems that the baseline model produces the sharpest images whereas the normalizing flow 
-models produce blurrier images. This is the opposite of what we expected given the training loss values discussed
+models produce blurrier images. This is the opposite of what we expected given the variational bounds discussed
 previously. However, because the loss functions for the two models are slightly different, the lower bound might 
 not be the best measurement of image quality.
 
@@ -410,8 +410,8 @@ to be approximated and give our model more expressive power. However, as can see
 samples, the addition of these normalizing flow layers does not always make our generator perform better. 
 Perhaps one limitation of our review was the size of the model that we used. In \citet{RM15}, they trained a 
 model with 40 latent dimensions and up to 80 normalizing flow layers. In the interest of time, our models were 
-much smaller. The decision might have limited the complexity of our posterior. Another issue might be 
-due to the added complexity of the normalizing flows layers. It might have required more training iterations 
+much smaller. This decision might have limited the complexity of our posterior. Another issue might be 
+due to the added complexity of the normalizing flow layers. It might have required more training iterations 
 for the normalizing flow models to fully converge in comparison to the baseline model. Perhaps, training 
 the normalizing flow models for longer might yield better results.
 
@@ -430,10 +430,11 @@ for more epochs.
 \section{Conclusions}
 In our work, we described two models of VAEs: vanilla VAEs and VAEs with differing numbers of
 normalizing flow layers.  We compared the training loss among the the different VAE models and found
-that the model with the greatest number of normalizing flow layers performed the best.  This is what we
-expected since normalizing flow layers allow for greater expressivity in the posterior approximation.
+that the model with the greatest number of normalizing flow layers performed the best quantivetatively.  This is what we
+expected since normalizing flow layers allow for greater expressivity in the posterior approximation. 
 Therefore, by introducing various transformations to a simple initial posterior distribution, more complex
-posterior distributions can be approximated.
+posterior distributions can be approximated. However it is worth noting that the generated samples produced 
+by these models are more blurry than those from the vanilla VAE indicating possible limitations in our review.
 
 
 \small
