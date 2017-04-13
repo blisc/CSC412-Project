@@ -63,6 +63,41 @@ def NormFlowLayer(incoming, output_dim, scope = None, bias = 0.0):
     return [f_z, logdet_jacobian]
 
 
+
+def NormFlowLayer_Fixed(incoming, output_dim, scope = None, bias = 0.0):
+  # Initialize the normalizing flow layer
+  with tf.variable_scope(scope or 'normflow'):
+    w = tf.get_variable("weights", [incoming.get_shape()[-1], 1], \
+                                initializer=tf.contrib.layers.xavier_initializer(uniform=False))
+    u = tf.get_variable("mu", [incoming.get_shape()[-1], 1], \
+                                initializer=tf.contrib.layers.xavier_initializer(uniform=False))
+    b = tf.get_variable("biases", [1], initializer=tf.constant_initializer(bias))
+
+    # z is (batch_size, latent_dim)
+    z = incoming
+
+    uw = tf.reduce_sum(tf.multiply(u,w))
+    #uw = tf.matmul(u,tf.transpose(w))
+
+    # m(.) = -1 + \log(1 + \exp(.)), as defined in Appendix A
+    # u_hat is for numerical stability (see Appendix A in RM15)
+    m_uw = -1 + tf.log(1e-10 + 1 + tf.exp(uw))
+    u_hat = u + (m_uw-uw) * w / tf.reduce_sum(w**2)
+    hyperplane = tf.matmul(z, w) + b
+
+    # Transformed version of z after passing through this norm. flow layer
+    #f_z = z + tf.matmul(tf.tanh(hyperplane), u_hat)
+    f_z = z + tf.matmul(tf.tanh(hyperplane), tf.transpose(u_hat))
+
+    #psi = tf.matmul(1 - tf.tanh(hyperplane)**2, w)
+    psi = tf.matmul(1 - tf.tanh(hyperplane)**2, tf.transpose(w))
+    psi_u = tf.matmul(psi, u_hat)
+
+    logdetjac = tf.log(1e-10 + tf.abs(1 + psi_u))
+
+    return [f_z, logdetjac]
+
+    
 def log_stdnormal(z):
   # Computes elementwise log standart normal
   # \log p(z) = \log \mathcal{N}(z | 0, I)
@@ -133,11 +168,14 @@ def plot(data, trainStep, number, append=False):
 
   plt.close(fig)
 
-def plotMany(data, name, rows=10, cols=10):
+def plotMany(data, name, rows=10, cols=10, list=False):
   fig, ax = plt.subplots(rows,cols)
   for i in range(rows):
     for j in range(cols):
-      img = data[i*cols+j]
+      if list:
+        img = data[i*cols+j,:]
+      else:
+        img = data[i*cols+j]
       img = np.reshape(img, (-1, 28))
       img *= 255.
       ax[i,j].imshow(img, cmap=cm.Greys_r, interpolation='none')
@@ -190,4 +228,3 @@ def plot_comparison(data, generated_sample, trainStep, number, append=False, vmi
   fig.savefig(name, dpi=300)
 
   plt.close(fig)
-

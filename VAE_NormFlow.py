@@ -3,7 +3,11 @@ import numpy as np
 import tensorflow as tf
 
 from BuildingBlocks import DataDistribution, linear, optimizer, plot_comparison, \
-                           NormFlowLayer, lognormal, log_stdnormal
+                           lognormal, log_stdnormal, plotMany
+from BuildingBlocks import NormFlowLayer_Fixed as NormFlowLayer
+                           # NormFlowLayer
+from data import load_mnist, plot_images, save_images
+
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS
@@ -45,7 +49,7 @@ class VariationalAutoencoder:
     self.log_q0_z0 = lognormal(self.z, self.z_mean, self.z_log_var)
     self.log_p_x_given_zk = tf.reduce_sum(self.images * tf.log(1e-10 + self.reconstruction) + \
                                      (1 - self.images) * tf.log(1e-10 + 1 - self.reconstruction), 1)
-    self.log_p_x_given_zk = tf.reshape(self.log_p_x_given_zk, [128,1])
+    self.log_p_x_given_zk = tf.reshape(self.log_p_x_given_zk, [self.batchSize,1])
     self.log_p_zk = log_stdnormal(f_z)
     self.log_p_x_and_zk = self.log_p_x_given_zk + self.log_p_zk
     # self.sumLogDetJ = tf.reduce_sum(self.sumLogDetJ, axis=1)
@@ -158,13 +162,109 @@ class VariationalAutoencoder:
 
     return reconstruction, sumLogDetJ, f_z
 
-
+  def get_marginal(self, restore, num_samples = 10):
+    # Build prob_x
+    print(self.log_p_zk.get_shape())
+    print(self.log_q0_z0.get_shape())
+    
+    self.log_p_zk_batch = tf.reduce_sum(self.log_p_zk, 1)
+    print(self.log_p_zk_batch.get_shape())
+    self.log_p_x_given_zk_batch = tf.reduce_sum(self.images * tf.log(1e-10 + self.reconstruction) + \
+                                     (1 - self.images) * tf.log(1e-10 + 1 - self.reconstruction), 1)
+    print(self.log_p_x_given_zk_batch.get_shape())
+    self.log_p_x_and_zk_batch = self.log_p_x_given_zk_batch+self.log_p_zk_batch
+    print(self.log_p_x_and_zk_batch.get_shape())
+    self.log_q0_z0_batch = tf.reduce_sum(self.log_q0_z0,1)
+    self.prob_x = tf.reduce_mean(self.log_p_x_and_zk_batch-self.log_q0_z0_batch)
+  
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,log_device_placement=False)) as sess:
+      saver = tf.train.Saver()
+      
+      ckpt = tf.train.get_checkpoint_state(restore)
+      if ckpt and ckpt.model_checkpoint_path:
+        saver.restore(sess, ckpt.model_checkpoint_path)
+        restore = tf.train.latest_checkpoint(restore)
+        print("Restored :{}".format(restore))
+        start_step = int(restore.split("-")[1])
+        
+      else:
+        print("Saver error")
+        return
+          
+      avg_loss = 0.
+      avg_prob_x = 0.
+      for sample in range(num_samples):
+        total_batch = int(self.trainingSize / self.batchSize)
+        for i in range(total_batch):
+          batch, _ = self.dataSamples.sample(self.batchSize)
+          loss, prob_x = sess.run([self.loss, self.prob_x], feed_dict={self.images:batch})
+          
+          avg_loss += loss / self.trainingSize * self.batchSize
+          avg_prob_x += prob_x / self.trainingSize * self.batchSize
+          
+          #DEBUG
+          # log_q0_z0, log_p_x_given_zk, log_p_zk, sumLogDetJ, log_p_x_and_zk = sess.run([self.log_q0_z0_batch, self.log_p_x_and_zk_batch, self.log_p_zk_batch, self.sumLogDetJ, self.log_p_x_and_zk_batch], feed_dict={self.images:batch})
+          # print("log_q0_z0: {}".format(log_q0_z0))
+          # print("log_p_x_given_zk: {}".format(log_p_x_given_zk))
+          # print("log_p_zk: {}".format(log_p_zk))
+          # print("log_p_x_and_zk: {}".format(log_p_x_and_zk))
+          # print("sumLogDetJ: {}".format(sumLogDetJ))
+          # print("prob_x: {}".format(prob_x))
+          # raw_input()
+          
+      avg_loss = avg_loss / float(num_samples)
+      avg_prob_x = -avg_prob_x / float(num_samples)
+      print("Average loss across dataset: {}".format(avg_loss))
+      print("Marginal Probability across dataset: {}".format(avg_prob_x))
+      
+  def plot_trained_reconstruction(self, restore):
+    # Build prob_x
+    N_data, train_images, train_labels, test_images, test_labels = load_mnist()
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,log_device_placement=False)) as sess:
+      saver = tf.train.Saver()
+      
+      ckpt = tf.train.get_checkpoint_state(restore)
+      if ckpt and ckpt.model_checkpoint_path:
+        saver.restore(sess, ckpt.model_checkpoint_path)
+        restore = tf.train.latest_checkpoint(restore)
+        print("Restored :{}".format(restore))
+        start_step = int(restore.split("-")[1])
+        
+      else:
+        print("Saver error")
+        return
+          
+      batch = train_images[0:100]
+      print(batch.shape)
+      reconstruction = sess.run(self.reconstruction, feed_dict={self.images:batch})
+      # print(len(reconstruction))
+      
+      # plotMany(batch, "Samples_8", rows=10, cols=10, list=True)
+      plotMany(reconstruction, "reconstruction_5Layers", rows=10, cols=10)
+      
+      
 if __name__ == '__main__':
   print("VAE Normalizing Flows")
   with tf.device('/gpu'):
-    model = VariationalAutoencoder(batchSize=128, hiddenLayerSize=500, trainingEpochs=100, \
+    model = VariationalAutoencoder(batchSize=100, hiddenLayerSize=500, trainingEpochs=100, \
                                    learningRate=0.001, latentDimension=20, flowLayers=5)
     model.createModel()
-    model.train()
+    # model.train()
+    # model.get_marginal()
+    model.plot_trained_reconstruction()
 
+# Restored :../extraprojectresults/2_2_NormFlow/checkpoint-99
+# Average loss across dataset: 121.512805547
+# Marginal Probability across dataset: 147.922926854
 
+# Restored :results/2_3_NormFlow/checkpoint-99
+# Average loss across dataset: 107.670870019
+# Marginal Probability across dataset: 157.570116755
+
+# Restored :results/2_4_NormFlow/checkpoint-99
+# Average loss across dataset: 105.087841287
+# Marginal Probability across dataset: 180.599340436
+
+# Restored :results/2_5_NormFlow_3/checkpoint-99
+# Average loss across dataset: 111.962723848
+# Marginal Probability across dataset: 148.450740051

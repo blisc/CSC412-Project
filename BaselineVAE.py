@@ -2,7 +2,8 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from BuildingBlocks import DataDistribution, linear, optimizer, plot_comparison
+from BuildingBlocks import DataDistribution, linear, optimizer, plot_comparison, lognormal, log_stdnormal, plotMany
+from data import load_mnist, plot_images, save_images
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS
@@ -36,13 +37,13 @@ class VariationalAutoencoder:
       self.z = tf.add(self.z_mean, tf.mul(tf.exp(self.z_log_std), epsilon))
     
     with tf.variable_scope("Generator") as scope:
-      self.reconstructrion = self._generator_network(self.z)
+      self.reconstruction = self._generator_network(self.z)
       
     # loss is -KL(q(z|x)||p(z)) + mean(log(p(x|z)))
-    # KL + reconstructrion loss
+    # KL + reconstruction loss
     # q(z|x) is self.z
-    self.reconstructrion_loss = -tf.reduce_sum(self.images * tf.log(1e-10 + self.reconstructrion)
-                           + (1-self.images) * tf.log(1e-10 + 1. - self.reconstructrion),
+    self.reconstruction_loss = -tf.reduce_sum(self.images * tf.log(1e-10 + self.reconstruction)
+                           + (1-self.images) * tf.log(1e-10 + 1. - self.reconstruction),
                            1)
     # Log sigma squared version
     # self.latent_loss = -0.5 * tf.reduce_sum(1. + self.z_log_var 
@@ -52,7 +53,7 @@ class VariationalAutoencoder:
     self.latent_loss = -0.5 * tf.reduce_sum(1. + 2.*self.z_log_std
                                            - tf.square(self.z_mean) 
                                            - tf.exp(2.*self.z_log_std), 1)                       
-    self.loss = tf.reduce_mean(self.reconstructrion_loss+self.latent_loss)
+    self.loss = tf.reduce_mean(self.reconstruction_loss+self.latent_loss)
     
     self.optimizer = optimizer(self.loss, self.learningRate)
     
@@ -102,8 +103,8 @@ class VariationalAutoencoder:
           checkpoint_file = os.path.join(FLAGS.checkpoint_dir, 'checkpoint')
           saver.save(sess, checkpoint_file, global_step=epoch)
           
-          #Plot reconstructrion
-          output = sess.run(self.reconstructrion, feed_dict={self.images:batch})
+          #Plot reconstruction
+          output = sess.run(self.reconstruction, feed_dict={self.images:batch})
           plot_comparison(batch[0], output[0], epoch, 1)
           plot_comparison(batch[50], output[50], epoch, 2)
           plot_comparison(batch[100], output[100], epoch, 3)
@@ -121,13 +122,82 @@ class VariationalAutoencoder:
     hid_1 = tf.nn.relu(linear(sample,self.hiddenLayerSize,'hid_1'))
     hid_2 = tf.nn.relu(linear(hid_1,self.hiddenLayerSize,'hid_2'))
     
-    reconstructrion = tf.nn.sigmoid(linear(hid_2,784,'z_mean'))
+    reconstruction = tf.nn.sigmoid(linear(hid_2,784,'z_mean'))
     
-    return reconstructrion
+    return reconstruction
+    
+  def get_marginal(self, restore, num_samples = 10):
+    # Build prob_x
+    self.prob_z = tf.reduce_sum(log_stdnormal(self.z),1)
+    self.prob_z_given_x = -self.reconstruction_loss
+    self.log_q0_z0 = tf.reduce_sum(lognormal(self.z, self.z_mean, 2*self.z_log_std),1)
+    self.prob_x = self.prob_z_given_x+self.prob_z-self.log_q0_z0
+  
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,log_device_placement=False)) as sess:
+      saver = tf.train.Saver()
+      
+      ckpt = tf.train.get_checkpoint_state(restore)
+      if ckpt and ckpt.model_checkpoint_path:
+        saver.restore(sess, ckpt.model_checkpoint_path)
+        restore = tf.train.latest_checkpoint(restore)
+        print("Restored :{}".format(restore))
+        start_step = int(restore.split("-")[1])
+        
+      else:
+        print("Saver error")
+        return
+          
+      avg_loss = 0.
+      avg_prob_x = 0.
+      for sample in range(num_samples):
+        total_batch = int(self.trainingSize / self.batchSize)
+        for i in range(total_batch):
+          batch, _ = self.dataSamples.sample(self.batchSize)
+          loss, prob_x = sess.run([self.loss, self.prob_x], feed_dict={self.images:batch})
+          
+          prob_x = np.mean(prob_x)
+
+          avg_loss += loss / self.trainingSize * self.batchSize
+          avg_prob_x += prob_x / self.trainingSize * self.batchSize
+      avg_loss = avg_loss / float(num_samples)
+      avg_prob_x = avg_prob_x / float(num_samples)
+      print("Average loss across dataset: {}".format(avg_loss))
+      print("Marginal Probability across dataset: {}".format(avg_prob_x))
+      
+  def plot_trained_reconstruction(self, restore):
+    # Build prob_x
+    N_data, train_images, train_labels, test_images, test_labels = load_mnist()
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,log_device_placement=False)) as sess:
+      saver = tf.train.Saver()
+      
+      ckpt = tf.train.get_checkpoint_state(restore)
+      if ckpt and ckpt.model_checkpoint_path:
+        saver.restore(sess, ckpt.model_checkpoint_path)
+        restore = tf.train.latest_checkpoint(restore)
+        print("Restored :{}".format(restore))
+        start_step = int(restore.split("-")[1])
+        
+      else:
+        print("Saver error")
+        return
+          
+      batch = train_images[0:100]
+      print(batch.shape)
+      reconstruction = sess.run(self.reconstruction, feed_dict={self.images:batch})
+      # print(len(reconstruction))
+      
+      plotMany(batch, "Samples_b", rows=10, cols=10, list=True)
+      plotMany(reconstruction, "reconstruction_Baseline", rows=10, cols=10)
     
 if __name__ == '__main__':
   print("VAE Baseline")
   with tf.device('/gpu'):
-    model = VariationalAutoencoder(batchSize=128, hiddenLayerSize=500, trainingEpochs=100, learningRate=0.001, latentDimension=20)
+    model = VariationalAutoencoder(batchSize=100, hiddenLayerSize=500, trainingEpochs=100, learningRate=0.001, latentDimension=20)
     model.createModel()
-    model.train()
+    # model.train()
+    # model.get_marginal()
+    model.plot_trained_reconstruction()
+    
+# Restored :results/1_2_Baseline/checkpoint-99
+# Average loss across dataset: -109.225000534
+# Marginal Probability across dataset: -109.225938167
