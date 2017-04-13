@@ -213,8 +213,11 @@ Equation \ref{eq:logqkzk}, we get:
 \begin{equation}
 	\log q_K(\bz_K) = \log q_0(\bz) - \sum_{k=1}^K \log \left|1 + \bu_k^\top\psi_k(\bz_{k-1})\right|
 \end{equation}
-where $\psi_k(\bz) = h'(\bw^\top\bz + b)\bw$.
-
+where $\psi_k(\bz) = h'(\bw^\top\bz + b)\bw$. With these equations, the function we want to minimize becomes:
+\begin{equation}
+	\mathcal{F}(\bx) = \E_{q_0}\left[\log q_0(\bz_0)\right] - \E_{q_0}\left[\log p(\bx, \bz_K)\right] 
+					- \E_{q_0}\left[\sum_{k=1}^K\log \left|1 + \bu_k^\top\psi_k(\bz_{k-1})\right|\right]
+\end{equation}
 
 \section{Related Work}
 
