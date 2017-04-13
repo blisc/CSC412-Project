@@ -310,9 +310,9 @@ train the models.
 \end{table}
 
 \subsection{Baseline (Vanilla) VAE}
-After training the baseline VAE to the MNIST dataset, we approximated the log likelihood of the model 
-by averaging the lower bound, or loss, across 10 samples of each data point from the data set. We 
-approximated the negative log-likelihood to be 109.23. The training loss is shown in Figure \ref{fig:BaselineLoss}.
+After training the baseline VAE to the MNIST dataset, the variational bound of the model was computed
+by averaging the loss across 10 samples of each data point from the data set. The variational lower bound
+was approximately 109.23. The training loss is shown in Figure \ref{fig:BaselineLoss}.
 
 \begin{figure}[htbp]\hspace{-2.5em}
 \begin{subfigure}{0.5\textwidth}
@@ -336,15 +336,15 @@ approximated the negative log-likelihood to be 109.23. The training loss is show
 \end{figure}
 
 \subsection{VAE with Normalizing Flow}
-In the same manner as the baseline VAE, we approximated the log likelihood of the normalizing flow 
-using the lower bound as stated in Equation \ref{eq:ELBO_NormFlow}. In order to evaluate the 
-performance of the normalizing flow layers, we trained 3 models with 3, 5 and 8 normalizing flow layers 
-to see how much of an impact these layers have. We obtained negative log-likelihood 111.96, 105.09 
-and 107.67 respectively.  The training loss for all 3 models is shown in Figure \ref{fig:NormFlowLoss}.
+In the same manner as the baseline VAE, we approximated the log-likelihood using the lower bound
+as stated in Equation \ref{eq:ELBO_NormFlow}. In order to evaluate the performance of the normalizing 
+flow layers, we trained 3 models with 3, 5 and 8 normalizing flow layers to see how much of an impact 
+these layers have. We obtained variational bound 111.96, 105.09 and 107.67 respectively.  The training
+loss for all 3 models is shown in Figure \ref{fig:NormFlowLoss}.
 
 
 \subsection{Model Comparison}
-From the log-likelihood scores of the 4 models, we see that the model with 8 normalizing flow layers 
+Comparing the variational bound values of the 4 models, we see that the model with 8 normalizing flow layers 
 performs the best, followed by the model with 5 layers. An interesting observation is that the model with 
 3 normalizing flows layers performs worse than the baseline model. We expected that the normalizing flow 
 would have been able to better approximate the posterior than a model without those layers.
