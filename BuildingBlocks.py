@@ -36,8 +36,10 @@ def linear(tensor_in, output_dim, scope = None, bias=0.0, summary=True, normal=F
 def NormFlowLayer(incoming, output_dim, scope = None, bias = 0.0):
   # Initialize the normalizing flow layer
   with tf.variable_scope(scope or 'normflow'):
-    w = tf.Variable(tf.truncated_normal([int(incoming.get_shape()[-1]), output_dim], stddev=0.01))
-    u = tf.Variable(tf.truncated_normal([int(incoming.get_shape()[-1]), output_dim], stddev=0.01))
+    w = tf.get_variable("weights", [incoming.get_shape()[-1], output_dim], \
+                                initializer=tf.contrib.layers.xavier_initializer(uniform=False))
+    u = tf.get_variable("mu", [incoming.get_shape()[-1], output_dim], \
+                                initializer=tf.contrib.layers.xavier_initializer(uniform=False))
     b = tf.get_variable("biases", [output_dim], initializer=tf.constant_initializer(bias))
 
     # z is (batch_size, latent_dim)

@@ -112,8 +112,8 @@ class VariationalAutoencoder:
     hid_1 = tf.nn.relu(linear(data,self.hiddenLayerSize,'hid_1'))
     hid_2 = tf.nn.relu(linear(hid_1,self.hiddenLayerSize,'hid_2'))
     
-    z_mean = tf.nn.relu(linear(hid_2,self.latentDimension,'z_mean'))
-    z_log_std = tf.nn.relu(linear(hid_2,self.latentDimension,'z_log_std'))
+    z_mean = tf.nn.tanh(linear(hid_2,self.latentDimension,'z_mean'))
+    z_log_std = tf.nn.tanh(linear(hid_2,self.latentDimension,'z_log_std'))
     
     return (z_mean, z_log_std)
     
@@ -126,6 +126,7 @@ class VariationalAutoencoder:
     return reconstructrion
     
 if __name__ == '__main__':
+  print("VAE Baseline")
   with tf.device('/gpu'):
     model = VariationalAutoencoder(batchSize=128, hiddenLayerSize=500, trainingEpochs=100, learningRate=0.001, latentDimension=20)
     model.createModel()

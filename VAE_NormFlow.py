@@ -43,12 +43,20 @@ class VariationalAutoencoder:
 
     # Compute the loss function
     self.log_q0_z0 = lognormal(self.z, self.z_mean, self.z_log_var)
-    self.log_p_x_given_zk = -tf.reduce_sum(self.images * tf.log(1e-10 + self.reconstruction) + \
-                                     (1 - self.images) * tf.log(1e-10 + 1 - self.reconstruction))
+    self.log_p_x_given_zk = tf.reduce_sum(self.images * tf.log(1e-10 + self.reconstruction) + \
+                                     (1 - self.images) * tf.log(1e-10 + 1 - self.reconstruction), 1)
+    self.log_p_x_given_zk = tf.reshape(self.log_p_x_given_zk, [128,1])
     self.log_p_zk = log_stdnormal(f_z)
     self.log_p_x_and_zk = self.log_p_x_given_zk + self.log_p_zk
+    # self.sumLogDetJ = tf.reduce_sum(self.sumLogDetJ, axis=1)
+    
+    # print(self.log_q0_z0.get_shape())
+    # print(self.log_p_x_given_zk.get_shape())
+    # print(self.log_p_zk.get_shape())
+    # print(self.log_p_x_and_zk.get_shape())
+    # print(self.sumLogDetJ.get_shape())
 
-    self.loss = tf.reduce_mean(self.log_p_x_and_zk + self.sumLogDetJ - self.log_q0_z0)
+    self.loss = -tf.reduce_mean(self.log_p_x_and_zk + self.sumLogDetJ - self.log_q0_z0)
     self.optimizer = optimizer(self.loss, self.learningRate)
 
     tf.summary.scalar(self.loss.op.name, self.loss)
@@ -92,11 +100,11 @@ class VariationalAutoencoder:
 
         if epoch % 1 == 0:
           print("Epoch:", '%04d' % (epoch+1), "loss=", "{:.9f}".format(avg_loss))
-          print("last loss=", "{:.9f}".format(loss))
+          # print("last loss=", "{:.9f}".format(loss))
           summary_str = sess.run(summary, feed_dict={self.images:batch})
           summary_writer.add_summary(summary_str, epoch)
           summary_writer.flush()
-        if epoch % 5 == 0:
+        if epoch % 5 == 0 or (epoch+1) == self.trainingEpochs:
           checkpoint_file = os.path.join(FLAGS.checkpoint_dir, 'checkpoint')
           saver.save(sess, checkpoint_file, global_step=epoch)
           
