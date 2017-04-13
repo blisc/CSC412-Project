@@ -45,22 +45,24 @@ def NormFlowLayer(incoming, output_dim, scope = None, bias = 0.0):
     # z is (batch_size, latent_dim)
     z = incoming
 
-    uw = tf.reduce_sum(tf.multiply(u,w))
-    muw = -1 + tf.log(1e-10 + 1 + tf.exp(uw))
-    u_hat = u + (muw-uw) * tf.transpose(w) / tf.reduce_sum(w**2)
-    zwb = tf.matmul(z, w) + b
-    f_z = z + tf.matmul(tf.tanh(zwb), u_hat)
+    #uw = tf.reduce_sum(tf.multiply(u,w))
+    uw = tf.matmul(u,tf.transpose(w))
 
-    psi = tf.matmul(1 - tf.tanh(zwb)**2, w)
+    # m(.) = -1 + \log(1 + \exp(.)), as defined in Appendix A
+    # u_hat is for numerical stability (see Appendix A in RM15)
+    m_uw = -1 + tf.log(1e-10 + 1 + tf.exp(uw))
+    u_hat = u + (m_uw-uw) * w / tf.reduce_sum(w**2)
+    hyperplane = tf.matmul(z, w) + b
+
+    # Transformed version of z after passing through this norm. flow layer
+    f_z = z + tf.matmul(tf.tanh(hyperplane), u_hat)
+
+    psi = tf.matmul(1 - tf.tanh(hyperplane)**2, w)
     psi_u = tf.matmul(psi, u_hat)
 
-    logdet_jacobian = tf.log(1e-10 + tf.abs(1 + psi_u))
+    logdetjac = tf.log(1e-10 + tf.abs(1 + psi_u))
 
-#    if(summary):
-#      variable_summaries(u, (scope or 'norm_flow_u')+'_weights')
-#      variable_summaries(w, (scope or 'norm_flow_w')+'_weights')
-
-    return [f_z, logdet_jacobian]
+    return [f_z, logdetjac]
 
 
 def log_stdnormal(z):
