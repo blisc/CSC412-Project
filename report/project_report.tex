@@ -269,10 +269,11 @@ samples using this transformation performs better than autoregressive models suc
 
 \subsection{Overview}
 We compared the performance of the two models on the MNIST dataset to see the effects of the normalizing
-flow layers. We used the same model and hyperparameters to achieve a fair comparison. The only 
-difference between the models was the training loss, $\mathcal{F}$, as presented in Section 
-\ref{sec:FormalDescription} and the addition of normalizing flow layers from the latent sample to the 
-generator network. We created 3 normalizing flow models, each with a different number of normalizing flow layers.
+flow layers. We used the same model and hyperparameters to achieve a fair comparison. The only difference 
+between the models is the training loss, $\mathcal{F}$, as presented in Section \ref{sec:FormalDescription}, 
+and the addition of normalizing flow layers from the latent sample to the generator network. We created 3 
+normalizing flow models, each with a different number of normalizing flow layers. The code for these experiments
+can be found online\footnote{\texttt{https://github.com/blisc/CSC412-Project}}.
 
 For each model, we trained them for 100 epochs of the dataset with the Adam optimizer. In order to approximate 
 the expectations present in Equations \ref{eq:ELBO_VAE} and \ref{eq:ELBO_NormFlow}, we used Monte Carlo 
@@ -397,7 +398,6 @@ not be the best measurement of image quality.
 \begin{figure}[htbp]
 \begin{center}
 	\includegraphics[width=0.52\textwidth]{reconstruction_8Layers.png}
-\label{fig:NormFlow8}
 \caption{Reconstructed images using the VAE with 8 normalizing flow layers.}
 \label{fig:NormFlow8}
 \end{center}

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  13 APR 2017 19:27
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  13 APR 2017 19:38
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -846,11 +846,7 @@ Package: subcaption 2013/02/03 v1.1-62 Sub-captions (AR)
 \c@subfigure=\count140
 \c@subtable=\count141
 )
-(./project_report.aux
-
-LaTeX Warning: Label `fig:NormFlow8' multiply defined.
-
-)
+(./project_report.aux)
 \openout1 = `project_report.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 84.
@@ -868,7 +864,8 @@ LaTeX Font Info:    ... okay on input line 84.
 LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 84.
 LaTeX Font Info:    ... okay on input line 84.
 LaTeX Font Info:    Try loading font information for T1+ptm on input line 84.
- (/usr/local/texlive/2013/texmf-dist/tex/latex/psnfss/t1ptm.fd
+
+(/usr/local/texlive/2013/texmf-dist/tex/latex/psnfss/t1ptm.fd
 File: t1ptm.fd 2001/06/04 font definitions for T1/ptm.
 )
 *geometry* driver: auto-detecting
@@ -1056,70 +1053,68 @@ File: NormFlowDiagram.png Graphic file (type png)
 <use NormFlowDiagram.png>
 Package pdftex.def Info: NormFlowDiagram.png used on input line 198.
 (pdftex.def)             Requested size: 238.49341pt x 129.68713pt.
- [2] [3 <./NormFlowDiagram.png>]
-<BaselineLoss.png, id=141, 729.72626pt x 520.94624pt>
+ [2] [3 <./NormFlowDiagram.png>] [4]
+<BaselineLoss.png, id=152, 729.72626pt x 520.94624pt>
 File: BaselineLoss.png Graphic file (type png)
  <use BaselineLoss.png>
-Package pdftex.def Info: BaselineLoss.png used on input line 320.
+Package pdftex.def Info: BaselineLoss.png used on input line 321.
 (pdftex.def)             Requested size: 178.86702pt x 127.69257pt.
 
-<NormFlowLoss.png, id=142, 666.49pt x 372.39125pt>
+<NormFlowLoss.png, id=153, 666.49pt x 372.39125pt>
 File: NormFlowLoss.png Graphic file (type png)
  <use NormFlowLoss.png>
-Package pdftex.def Info: NormFlowLoss.png used on input line 329.
+Package pdftex.def Info: NormFlowLoss.png used on input line 330.
 (pdftex.def)             Requested size: 238.49037pt x 133.24818pt.
 
-Overfull \hbox (39.74788pt too wide) in paragraph at lines 329--330
+Overfull \hbox (39.74788pt too wide) in paragraph at lines 330--331
  [] 
  []
 
-[4] <Samples.png, id=156, 578.16pt x 433.62pt>
+<Samples.png, id=159, 578.16pt x 433.62pt>
 File: Samples.png Graphic file (type png)
  <use Samples.png>
-Package pdftex.def Info: Samples.png used on input line 362.
+Package pdftex.def Info: Samples.png used on input line 363.
 (pdftex.def)             Requested size: 198.7425pt x 149.0565pt.
 
-<reconstruction_Baseline.png, id=157, 578.16pt x 433.62pt>
+<reconstruction_Baseline.png, id=160, 578.16pt x 433.62pt>
 File: reconstruction_Baseline.png Graphic file (type png)
 
 <use reconstruction_Baseline.png>
-Package pdftex.def Info: reconstruction_Baseline.png used on input line 369.
+Package pdftex.def Info: reconstruction_Baseline.png used on input line 370.
 (pdftex.def)             Requested size: 198.7425pt x 149.0565pt.
 
-Overfull \hbox (1.90002pt too wide) in paragraph at lines 360--374
+Overfull \hbox (1.90002pt too wide) in paragraph at lines 361--375
 []$[]$ $[]$ 
  []
 
-<reconstruction_3Layers.png, id=158, 578.16pt x 433.62pt>
+<reconstruction_3Layers.png, id=161, 578.16pt x 433.62pt>
 File: reconstruction_3Layers.png Graphic file (type png)
 
 <use reconstruction_3Layers.png>
-Package pdftex.def Info: reconstruction_3Layers.png used on input line 381.
+Package pdftex.def Info: reconstruction_3Layers.png used on input line 382.
 (pdftex.def)             Requested size: 198.7425pt x 149.0565pt.
 
-<reconstruction_5Layers.png, id=159, 578.16pt x 433.62pt>
+<reconstruction_5Layers.png, id=162, 578.16pt x 433.62pt>
 File: reconstruction_5Layers.png Graphic file (type png)
 
 <use reconstruction_5Layers.png>
-Package pdftex.def Info: reconstruction_5Layers.png used on input line 388.
+Package pdftex.def Info: reconstruction_5Layers.png used on input line 389.
 (pdftex.def)             Requested size: 198.7425pt x 149.0565pt.
 
-Overfull \hbox (6.30005pt too wide) in paragraph at lines 378--393
+Overfull \hbox (6.30005pt too wide) in paragraph at lines 379--394
 []  $[]$  $[]$ 
  []
 
-<reconstruction_8Layers.png, id=160, 578.16pt x 433.62pt>
+<reconstruction_8Layers.png, id=163, 578.16pt x 433.62pt>
 File: reconstruction_8Layers.png Graphic file (type png)
 
 <use reconstruction_8Layers.png>
-Package pdftex.def Info: reconstruction_8Layers.png used on input line 399.
+Package pdftex.def Info: reconstruction_8Layers.png used on input line 400.
 (pdftex.def)             Requested size: 206.69388pt x 155.01797pt.
- [5 <./BaselineLoss.png> <./NormFlowLoss.png> <./Samples.png> <./reconstruction
-_Baseline.png>]
-Underfull \vbox (badness 3260) has occurred while \output is active []
-
- [6 <./reconstruction_3Layers.png> <./reconstruction_5Layers.png> <./reconstruc
-tion_8Layers.png>] (./project_report.bbl)
+ [5 <./BaselineLoss.png> <./NormFlowLoss.png>]
+[6 <./Samples.png> <./reconstruction_Baseline.png> <./reconstruction_3Layers.pn
+g> <./reconstruction_5Layers.png> <./reconstruction_8Layers.png>]
+(./project_report.bbl)
 Package atveryend Info: Empty hook `BeforeClearDocument' on input line 447.
  [7]
 Package atveryend Info: Empty hook `AfterLastShipout' on input line 447.
@@ -1128,18 +1123,14 @@ Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 447.
 Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 447.
 Package rerunfilecheck Info: File `project_report.out' has not changed.
 (rerunfilecheck)             Checksum: 3968202E4C08C3DBE4528B087D5FEB02;791.
-
-
-LaTeX Warning: There were multiply-defined labels.
-
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 447.
  ) 
 Here is how much of TeX's memory you used:
- 18292 strings out of 493315
- 320754 string characters out of 6137904
- 431542 words of memory out of 5000000
- 21189 multiletter control sequences out of 15000+600000
- 40476 words of font info for 148 fonts, out of 8000000 for 9000
+ 18336 strings out of 493315
+ 321380 string characters out of 6137904
+ 430503 words of memory out of 5000000
+ 21221 multiletter control sequences out of 15000+600000
+ 47233 words of font info for 165 fonts, out of 8000000 for 9000
  957 hyphenation exceptions out of 8191
  56i,11n,60p,436b,696s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2013/texmf-dist/fonts/enc/dvips/base/8r.enc}{/usr/local/t
@@ -1156,14 +1147,15 @@ xmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2013/texmf
 -dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2013/texmf-
 dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2013/texmf-di
 st/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2013/texm
-f-dist/fonts/type1/public/cm-super/sftt1000.pfb></usr/local/texlive/2013/texmf-
-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2013/texmf-dist/fonts
-/type1/urw/times/utmr8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw
-/times/utmri8a.pfb>
-Output written on project_report.pdf (7 pages, 930129 bytes).
+f-dist/fonts/type1/public/cm-super/sftt0900.pfb></usr/local/texlive/2013/texmf-
+dist/fonts/type1/public/cm-super/sftt1000.pfb></usr/local/texlive/2013/texmf-di
+st/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/t
+ype1/urw/times/utmr8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/t
+imes/utmri8a.pfb>
+Output written on project_report.pdf (7 pages, 953008 bytes).
 PDF statistics:
- 261 PDF objects out of 1000 (max. 8388607)
- 215 compressed objects within 3 object streams
- 49 named destinations out of 1000 (max. 500000)
- 21149 words of extra memory for PDF output out of 24883 (max. 10000000)
+ 267 PDF objects out of 1000 (max. 8388607)
+ 220 compressed objects within 3 object streams
+ 50 named destinations out of 1000 (max. 500000)
+ 24221 words of extra memory for PDF output out of 24883 (max. 10000000)
 
