@@ -4,8 +4,10 @@
 \BOOKMARK [2][-]{subsection.2.2}{Vanilla VAE}{section.2}% 4
 \BOOKMARK [2][-]{subsection.2.3}{VAE with Normalizing Flow}{section.2}% 5
 \BOOKMARK [1][-]{section.3}{Related Work}{}% 6
-\BOOKMARK [1][-]{section.4}{Comparison}{}% 7
-\BOOKMARK [2][-]{subsection.4.1}{Baseline \(Vanilla\) VAE}{section.4}% 8
-\BOOKMARK [2][-]{subsection.4.2}{VAE with Normalizing Flow}{section.4}% 9
-\BOOKMARK [1][-]{section.5}{Limitations}{}% 10
-\BOOKMARK [1][-]{section.6}{Conclusions}{}% 11
+\BOOKMARK [1][-]{section.4}{Results and Comparison}{}% 7
+\BOOKMARK [2][-]{subsection.4.1}{Overview}{section.4}% 8
+\BOOKMARK [2][-]{subsection.4.2}{Baseline \(Vanilla\) VAE}{section.4}% 9
+\BOOKMARK [2][-]{subsection.4.3}{VAE with Normalizing Flow}{section.4}% 10
+\BOOKMARK [2][-]{subsection.4.4}{Model Comparison}{section.4}% 11
+\BOOKMARK [1][-]{section.5}{Limitations and Future Work}{}% 12
+\BOOKMARK [1][-]{section.6}{Conclusions}{}% 13

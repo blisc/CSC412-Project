@@ -20,30 +20,64 @@
 \citation{RM15}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}}
 \@writefile{toc}{\contentsline {section}{\numberline {2}Formal Description}{1}{section.2}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Probabilistic graphical model with latent variables, $\mathbf  {z}$, and observed variables, $\mathbf  {x}$.}}{1}{figure.1}}
-\newlabel{fig:problem_pgm}{{1}{1}{Probabilistic graphical model with latent variables, $\bz $, and observed variables, $\bx $}{figure.1}{}}
+\newlabel{sec:FormalDescription}{{2}{1}{Formal Description}{section.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Probabilistic graphical model with latent variables, $\mathbf  {z}$, and observed variables, $\mathbf  {x}$.\relax }}{1}{figure.caption.2}}
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:problem_pgm}{{1}{1}{Probabilistic graphical model with latent variables, $\bz $, and observed variables, $\bx $.\relax }{figure.caption.2}{}}
+\citation{RM15}
 \citation{RM15}
 \citation{RM15}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Variational Lower Bound}{2}{subsection.2.1}}
-\newlabel{eq:evid}{{2}{2}{Variational Lower Bound}{equation.2.2}{}}
-\newlabel{eq:pq_lb}{{3}{2}{Variational Lower Bound}{equation.2.3}{}}
-\newlabel{eq:KL_evid}{{4}{2}{Variational Lower Bound}{equation.2.4}{}}
-\newlabel{eq:ELBO}{{5}{2}{Variational Lower Bound}{equation.2.5}{}}
+\newlabel{eq:evid}{{3}{2}{Variational Lower Bound}{equation.2.3}{}}
+\newlabel{eq:pq_lb}{{4}{2}{Variational Lower Bound}{equation.2.4}{}}
+\newlabel{eq:KL_evid}{{5}{2}{Variational Lower Bound}{equation.2.5}{}}
+\newlabel{eq:ELBO}{{6}{2}{Variational Lower Bound}{equation.2.6}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Vanilla VAE}{2}{subsection.2.2}}
+\newlabel{eq:ELBO_VAE}{{7}{2}{Vanilla VAE}{equation.2.7}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.3}VAE with Normalizing Flow}{2}{subsection.2.3}}
 \citation{RM15}
 \citation{KS16}
+\citation{D16}
+\citation{D16}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces VAE with normalizing flow --- flow diagram, from \cite  {RM15}.\relax }}{3}{figure.caption.3}}
+\newlabel{fig:VAENormFlow}{{2}{3}{VAE with normalizing flow --- flow diagram, from \cite {RM15}.\relax }{figure.caption.3}{}}
+\newlabel{eq:logqkzk}{{10}{3}{VAE with Normalizing Flow}{equation.2.10}{}}
+\newlabel{eq:ELBO_NormFlow}{{13}{3}{VAE with Normalizing Flow}{equation.2.13}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Related Work}{3}{section.3}}
+\newlabel{sec:RelatedWork}{{3}{3}{Related Work}{section.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Results and Comparison}{4}{section.4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Overview}{4}{subsection.4.1}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Table of hyperparameters used to train the VAEs.\relax }}{4}{table.caption.4}}
+\newlabel{tab:hyperparameters}{{1}{4}{Table of hyperparameters used to train the VAEs.\relax }{table.caption.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Baseline (Vanilla) VAE}{4}{subsection.4.2}}
+\citation{RM15}
+\newlabel{fig:BaselineLoss}{{3a}{5}{Loss curve for the vanilla VAE.\relax }{figure.caption.5}{}}
+\newlabel{sub@fig:BaselineLoss}{{a}{5}{Loss curve for the vanilla VAE.\relax }{figure.caption.5}{}}
+\newlabel{fig:NormFlowLoss}{{3b}{5}{Loss curve for the VAE with normalizing flows.\relax }{figure.caption.5}{}}
+\newlabel{sub@fig:NormFlowLoss}{{b}{5}{Loss curve for the VAE with normalizing flows.\relax }{figure.caption.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Loss curves for different VAE models.\relax }}{5}{figure.caption.5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}VAE with Normalizing Flow}{5}{subsection.4.3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Model Comparison}{5}{subsection.4.4}}
+\newlabel{fig:samples}{{4a}{5}{Input images from MNIST dataset.\relax }{figure.caption.6}{}}
+\newlabel{sub@fig:samples}{{a}{5}{Input images from MNIST dataset.\relax }{figure.caption.6}{}}
+\newlabel{fig:BaselineReconstruction}{{4b}{5}{Reconstructed images using the vanilla VAE.\relax }{figure.caption.6}{}}
+\newlabel{sub@fig:BaselineReconstruction}{{b}{5}{Reconstructed images using the vanilla VAE.\relax }{figure.caption.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Training images and reconstructed images using the vanilla VAE.\relax }}{5}{figure.caption.6}}
+\newlabel{fig:SampleBaseline}{{4}{5}{Training images and reconstructed images using the vanilla VAE.\relax }{figure.caption.6}{}}
+\newlabel{fig:NormFlow3}{{5a}{6}{Reconstructed images using the VAE with 3 normalizing flow layers.\relax }{figure.caption.7}{}}
+\newlabel{sub@fig:NormFlow3}{{a}{6}{Reconstructed images using the VAE with 3 normalizing flow layers.\relax }{figure.caption.7}{}}
+\newlabel{fig:NormFlow5}{{5b}{6}{Reconstructed images using the VAE with 5 normalizing flow layers.\relax }{figure.caption.7}{}}
+\newlabel{sub@fig:NormFlow5}{{b}{6}{Reconstructed images using the VAE with 5 normalizing flow layers.\relax }{figure.caption.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Reconstructed images using the VAE with 3 and 5 normalizing flow layers.\relax }}{6}{figure.caption.7}}
+\newlabel{fig:NormFlow35}{{5}{6}{Reconstructed images using the VAE with 3 and 5 normalizing flow layers.\relax }{figure.caption.7}{}}
+\newlabel{fig:NormFlow8}{{\caption@xref {fig:NormFlow8}{ on input line 400}}{6}{Model Comparison}{figure.caption.8}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Reconstructed images using the VAE with 8 normalizing flow layers.\relax }}{6}{figure.caption.8}}
+\newlabel{fig:NormFlow8}{{6}{6}{Reconstructed images using the VAE with 8 normalizing flow layers.\relax }{figure.caption.8}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Limitations and Future Work}{6}{section.5}}
 \bibstyle{plainnat}
 \bibdata{references.bib}
-\bibcite{KW13}{{1}{2013}{{Kingma and Welling}}{{}}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces VAE with normalizing flow --- flow diagram, from \cite  {RM15}.}}{3}{figure.2}}
-\newlabel{fig:VAENormFlow}{{2}{3}{VAE with normalizing flow --- flow diagram, from \cite {RM15}}{figure.2}{}}
-\newlabel{eq:logqkzk}{{9}{3}{VAE with Normalizing Flow}{equation.2.9}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {3}Related Work}{3}{section.3}}
-\bibcite{KS16}{{2}{2016}{{Kingma et~al.}}{{Kingma, Salimans, Jozefowicz, Chen, Sutskever, and Welling}}}
-\bibcite{RM15}{{3}{2015}{{Rezende and Mohamed}}{{}}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Comparison}{4}{section.4}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Baseline (Vanilla) VAE}{4}{subsection.4.1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}VAE with Normalizing Flow}{4}{subsection.4.2}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Limitations}{4}{section.5}}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusions}{4}{section.6}}
+\bibcite{D16}{{1}{2016}{{Dinh et~al.}}{{Dinh, Sohl-Dickstein, and Bengio}}}
+\bibcite{KW13}{{2}{2013}{{Kingma and Welling}}{{}}}
+\bibcite{KS16}{{3}{2016}{{Kingma et~al.}}{{Kingma, Salimans, Jozefowicz, Chen, Sutskever, and Welling}}}
+\bibcite{RM15}{{4}{2015}{{Rezende and Mohamed}}{{}}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusions}{7}{section.6}}

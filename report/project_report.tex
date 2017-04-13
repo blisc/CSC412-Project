@@ -24,8 +24,11 @@
 \usetikzlibrary{fit,positioning}
 \usepackage{amsmath}
 \usepackage[round]{natbib}
+\usepackage{multirow}
+\usepackage{caption}
+\usepackage{subcaption}
 
-\title{Varying Variational Autoencoders}
+\title{Transforming Variational Autoencoders}
 
 % The \author macro works with any number of authors. There are two
 % commands used to separate the names and addresses of multiple
@@ -107,6 +110,7 @@ the performance of two different methods of variational inference.
 
 
 \section{Formal Description}
+\label{sec:FormalDescription}
 
 \begin{figure}[htdp]
 \centering
@@ -137,7 +141,7 @@ So, a posterior distribution, $q(\bz \given \bx)$, is introduced allowing us to 
 the marginal likelihood:
 \begin{align}
 	\log p(\bx) &= \log\int_{\bz} p(\bx \given \bz)\,p(\bz)\,\D[\bz] \\
-%			&= \log\int_{\bz} \frac{q(\bz \given \bx)}{q(\bz \given \bx)}p(\bx \given \bz)\,p(\bz)\,\D[\bz] \\
+			&= \log\int_{\bz} \frac{q(\bz \given \bx)}{q(\bz \given \bx)}p(\bx \given \bz)\,p(\bz)\,\D[\bz] \\
 			&= \log \left(\E_q\left[\frac{p(\bx, \bz)}{q(\bz \given \bx)}\right]\right) \label{eq:evid} \\
 			&\geq \E_q\left[\log p(\bx,\bz)\right] - \E_q\left[\log q(\bz \given \bx)\right] \label{eq:pq_lb} \\
 			&= \log p(\bx) - \KL\left[q(\bz \given \bx) \,||\, p(\bz \given \bx)\right] \label{eq:KL_evid} \\
@@ -172,7 +176,7 @@ In order to train the VAE, we want to minimize the negative variational lower bo
 The first term measures how different the approximate posterior is from $p(\bz)$, so that a smaller value
 indicates a better approximation.  The second term is the reconstruction error, which describes how faithful
 the reconstructed input is to the actual input.  The loss function for the VAE is:
-\begin{equation}
+\begin{equation} \label{eq:ELBO_VAE}
 	\mathcal{F}(\bx) = -\frac{1}{2}\sum_{d=1}^D \left(1 + \log\bsig_d^2 - \bmu_d^2 - \bsig_d^2\right)
 %							_{\KL\left[q(\bz \given \bx) \,||\, p(\bz)\right]}
 					- \left(\sum_{k=1}^K \bx_k \log \hat{\bx}_k + 
@@ -195,7 +199,7 @@ illustrates how inferences are made using normalizing flow and how output is gen
 \caption{VAE with normalizing flow --- flow diagram, from \cite{RM15}.}
 \label{fig:VAENormFlow}
 \end{center}
-\vspace{-2em}
+\vspace{-0.5em}
 \end{figure}
 
 Normalizing flow describes a series of transformations on the initial probability distribution.  These 
@@ -227,12 +231,13 @@ experiments.  Plugging this into Equation \ref{eq:logqkzk}, we get:
 	\log q_K(\bz_K) = \log q_0(\bz_0) - \sum_{k=1}^K \log \left|1 + \bu_k^\top\psi_k(\bz_{k-1})\right|
 \end{equation}
 where $\psi_k(\bz) = h'(\bw^\top\bz + b)\bw$. With these equations, the function we want to minimize becomes:
-\begin{equation}
+\begin{equation} \label{eq:ELBO_NormFlow}
 	\mathcal{F}(\bx) = \E_{q_0}\left[\log q_0(\bz_0)\right] - \E_{q_0}\left[\log p(\bx, \bz_K)\right] 
 					- \E_{q_0}\left[\sum_{k=1}^K\log \left|1 + \bu_k^\top\psi_k(\bz_{k-1})\right|\right]
 \end{equation}
 
 \section{Related Work}
+\label{sec:RelatedWork}
 \citet{RM15} also introduce another type of flow called radial flow.  Radial flow differs from planar flow in the
 transformation function, $f$.  The transformation is $f(\bz) = \bz + \beta\cdot h(\alpha, r)(\bz - \bz_0)$, where
 $\alpha \in \R^+$ and $\beta \in \R$.  The changes to the initial distribution, $q_0$, differ between the two
@@ -247,19 +252,188 @@ $\log q(\bz_T \given \bx) = -\sum_{i=1}^D\left(\frac{1}{2}\epsilon_i^2 + \frac{1
 The resulting log marginal probabilities proved to be larger than those computed using previous methods of
 variational inference.
 
-\section{Comparison}
+\citet{D16} introduce another type of transformation called the real-values non-volume preserving (real NVP) 
+transformation. Similar to normalizing flow, \citet{D16} propose an invertible transformation from a simple
+latent distribution to a complex distribution of the form:
+\begin{align}
+	y_{1:d} &= x_{1:d} \\
+	y_{d+1:D} &= x_{d+1:D} \odot \exp\left(s(x_{1:d})\right) + t\left(x_{1:d}\right)
+\end{align}
+Using this mapping as $f$ in Equation \ref{eq:logqkzk}, we can compute the determinant and 
+obtain $\log q_K(\bz_K)$ accordingly. The difference between real NVP and normalizing flows is that 
+real NVP only transforms a portion of the input, from dimension $d+1$ onwards, through the exponential 
+of an affine linear transformation and element-wise multiplied with the input. They claim that the generated 
+samples using this transformation performs better than autoregressive models such as PixelRNN.
+
+\section{Results and Comparison}
+
+\subsection{Overview}
+We compared the performance of the two models on the MNIST dataset to see the effect of the normalizing
+flow. We used the same model and hyperparameters for both models to achieve a fair comparison. The only 
+difference between the models was the training loss, $\mathcal{F}$, as presented in Section 
+\ref{sec:FormalDescription} and the additional of normalizing flow layers from the latent sample to the 
+generator network. We created 3 normalizing flow models, each with a different number of normalizing flow layers.
+
+For each model, we trained them for 100 epochs of the dataset with the Adam optimizer. In order to approximate 
+the expectations present in Equations \ref{eq:ELBO_VAE} and \ref{eq:ELBO_NormFlow}, we used Monte Carlo 
+estimation with a single sample of the latent variables per data point. For the latent space, we chose to 
+parameterize it as a 20-dimensional Gaussian with mean and diagonal covariance as determined by the 
+recognition network. Table \ref{tab:hyperparameters} shows the various hyperparameters that were used to
+train the models.
+
+\begin{table}[htbp]
+\centering
+\caption{Table of hyperparameters used to train the VAEs.}
+\label{tab:hyperparameters}
+	\begin{tabular}{|c||c|c|c|c|}\hline
+	\multirow{2}{*}{Models}    & \multirow{2}{*}{Baseline} & Normalizing & Normalizing & Normalizing \\
+	                       &               &       Flow     &          Flow       &           Flow           \\\hline\hline
+	%Number of Layers           & 0      & 3         & 5          & 8          \\\hline
+	\multicolumn{5}{|c|}{\textbf{Training Hyperparameters}}			                  \\\hline
+	Optimizer                  & \multicolumn{4}{|c|}{Adam with TensorFlow Defaults}                 \\\hline
+	Learning Rate              & 0.001    & 0.001            & 0.001            & 0.001            \\\hline
+	Batch Size                 & 128      & 128              & 128              & 128              \\\hline
+	Training Epochs            & 100      & 100              & 100              & 100              \\\hline
+	Latent Gaussian Dimensions & 20       & 20               & 20               & 20               \\\hline\hline
+	\multicolumn{5}{|c|}{\textbf{Recognition Network}}                                                        \\\hline
+	Hidden Layers              & 2        & 2                & 2                & 2                \\\hline
+	Hidden Units               & 500      & 500              & 500              & 500              \\\hline
+	Normalizing Flow Layers    & 0        & 3                & 5                & 8                \\\hline
+	Hidden Units Activation    & ReLU     & ReLU             & ReLU             & ReLU             \\\hline
+	Final Activation           & tanh     & tanh             & tanh             & tanh             \\\hline\hline
+	\multicolumn{5}{|c|}{\textbf{Generator Network}}                                                          \\\hline
+	Hidden Layers              & 2        & 2                & 2                & 2                \\\hline
+	Hidden Units               & 500      & 500              & 500              & 500              \\\hline
+	Hidden Units Activation    & ReLU     & ReLU             & ReLU             & ReLU             \\\hline
+	Final Activation           & sigmoid  & sigmoid          & sigmoid          & sigmoid         \\\hline
+	\end{tabular}
+\end{table}
 
 \subsection{Baseline (Vanilla) VAE}
+After training the baseline VAE to the MNIST dataset, we approximated the log likelihood of the model 
+by averaging the lower bound, or loss, across 10 samples of each data point from the data set. We 
+approximated the negative log-likelihood to be 109.23. The training loss is shown in Figure \ref{fig:BaselineLoss}.
 
-
+\begin{figure}[htbp]\hspace{-2.5em}
+\begin{subfigure}{0.5\textwidth}
+\begin{center}
+	\includegraphics[width=0.9\textwidth]{BaselineLoss.png}
+\caption{Loss curve for the vanilla VAE.}
+\label{fig:BaselineLoss}
+\end{center}
+\end{subfigure}
+\begin{subfigure}{0.5\textwidth}
+\vspace{-2.3em}
+\hspace{1em}
+\begin{center}
+	\includegraphics[width=1.2\textwidth]{NormFlowLoss.png}
+\caption{Loss curve for the VAE with normalizing flows.}
+\label{fig:NormFlowLoss}
+\end{center}
+\end{subfigure}
+\caption{Loss curves for different VAE models.}
+\vspace{-1em}
+\end{figure}
 
 \subsection{VAE with Normalizing Flow}
+In the same manner as the baseline VAE, we approximated the log likelihood of the normalizing flow 
+using the lower bound as stated in Equation \ref{eq:ELBO_NormFlow}. In order to evaluate the 
+performance of the normalizing flow layers, we trained 3 models with 3, 5 and 8 normalizing flow layers 
+to see how much of an impact these layers have. We obtained negative log-likelihood 111.96, 105.09 
+and 107.67 respectively.  The training loss for all 3 models is shown in Figure \ref{fig:NormFlowLoss}.
 
 
+\subsection{Model Comparison}
+From the log-likelihood scores of the 4 models, we see that the model with 8 normalizing flow layers 
+performs the best, followed by the model with 5 layers. An interesting observation is that the model with 
+3 normalizing flows layers performs worse than the baseline model. We expected that the normalizing flow 
+would have been able to better approximate the posterior than a model without those layers.
 
-\section{Limitations}
+Figures \ref{fig:SampleBaseline}, \ref{fig:NormFlow35} and \ref{fig:NormFlow8} show the reconstructions 
+produced by each model. We took the first 100 images from the MNIST training set and plot their reconstruction. 
+Qualitatively, it seems that the baseline model produces the sharpest images whereas the normalizing flow 
+models produce blurrier images. This is the opposite of what we expected given the training loss values discussed
+previously. However, because the loss functions for the two models are slightly different, the lower bound might 
+not be the best measurement of image quality.
+
+\begin{figure}[htbp]
+\begin{subfigure}{0.5\textwidth}
+\begin{center}
+	\includegraphics[width=\textwidth]{Samples.png}
+\caption{Input images from MNIST dataset.}
+\label{fig:samples}
+\end{center}
+\end{subfigure}
+\begin{subfigure}{0.5\textwidth}
+\begin{center}
+	\includegraphics[width=\textwidth]{reconstruction_Baseline.png}
+\caption{Reconstructed images using the vanilla VAE.}
+\label{fig:BaselineReconstruction}
+\end{center}
+\end{subfigure}
+\caption{Training images and reconstructed images using the vanilla VAE.}
+\label{fig:SampleBaseline}
+\end{figure}
+
+\begin{figure}[htbp]\hspace{-0.25em}
+\begin{subfigure}{0.5\textwidth}
+\begin{center}
+	\includegraphics[width=\textwidth]{reconstruction_3Layers.png}
+\caption{Reconstructed images using the VAE with 3 normalizing flow layers.}
+\label{fig:NormFlow3}
+\end{center}
+\end{subfigure}\hspace{0.5em}
+\begin{subfigure}{0.5\textwidth}
+\begin{center}
+	\includegraphics[width=\textwidth]{reconstruction_5Layers.png}
+\caption{Reconstructed images using the VAE with 5 normalizing flow layers.}
+\label{fig:NormFlow5}
+\end{center}
+\end{subfigure}
+\caption{Reconstructed images using the VAE with 3 and 5 normalizing flow layers.}
+\label{fig:NormFlow35}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{center}
+	\includegraphics[width=0.52\textwidth]{reconstruction_8Layers.png}
+\label{fig:NormFlow8}
+\caption{Reconstructed images using the VAE with 8 normalizing flow layers.}
+\label{fig:NormFlow8}
+\end{center}
+\end{figure}
+
+\section{Limitations and Future Work}
+Our original goal was to explore the difference between vanilla VAEs and normalizing flow VAEs. As we
+explained in Section \ref{sec:FormalDescription}, normalizing flows should allow for more complex posteriors 
+to be approximated and give our model more expressive power. However, as can seen from the qualitative 
+samples, the addition of these normalizing flow layers does not always make our generator perform better. 
+Perhaps one limitation of our review was the size of the model that we used. In \citet{RM15}, they trained a 
+model with 40 latent dimensions and up to 80 normalizing flow layers. In the interest of time, our models were 
+much smaller. The decision might have limited the complexity of our posterior. Another issue might be 
+due to the added complexity of the normalizing flows layers. It might have required more training iterations 
+for the normalizing flow models to fully converge in comparison to the baseline model. Perhaps, training 
+the normalizing flow models for longer might yield better results.
+
+Another limitation of the normalizing flow models is that while they increase the complexity of the posterior, 
+the authors only provide an empirical result to show that normalizing flow models can learn arbitrary 
+complex distributions. While these transformations help construct more complex posterior distributions, 
+there is no proof that these models can learn any type of posterior distribution. Thus, we are still stuck 
+with an approximation of the true posterior.
+
+In Section \ref{sec:RelatedWork}, we presented three other transformations that can be applied. 
+A good next step to expand the review would be to try these transformations as well to see if they 
+result in better generated images. If we had more time and computing resources, it would be a good 
+idea to test some of the presented limitations by increasing model complexity and training the model 
+for more epochs.
 
 \section{Conclusions}
+In our work, we described two models of VAEs: vanilla VAEs and VAEs with differing numbers of
+normalizing flow layers.  We compared the training loss among the the different VAE models and found
+that the model with the greatest number of normalizing flow layers performed the best.  This is what we
+expected since normalizing flow layers allow for greater expressivity in the posterior approximation.
+Therefore, by introducing various transformations to a simple initial posterior distribution, more complex
+posterior distributions can be approximated.
 
 
 \small
